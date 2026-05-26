@@ -1,0 +1,24 @@
+{
+  "name": "@haiduk/player",
+  "version": "0.1.0",
+  "description": "React audio library player engine (catalog, playback, offline, themes)",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": false,
+  "files": ["src", "README.md"],
+  "exports": {
+    ".": "./src/index.ts",
+    "./lib/*": "./src/lib/*",
+    "./themes": "./src/themes/index.ts"
+  },
+  "peerDependencies": {
+    "@tanstack/react-virtual": "^3.13.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "~5.6.3"
+  }
+}
