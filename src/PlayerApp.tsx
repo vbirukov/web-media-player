@@ -17,6 +17,11 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import { ToastStack } from "./components/ToastStack";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
 import { useCatalog } from "./hooks/useCatalog";
+import { useTextReader } from "./hooks/useTextReader";
+import { useVideoPlayer } from "./hooks/useVideoPlayer";
+import { TextViewer } from "./components/TextViewer";
+import { VideoPlayerBar } from "./components/VideoPlayerBar";
+import { trackKind, type MediaKindFilter } from "./lib/mediaKind";
 import { useServerMedia } from "./lib/mediaUrl";
 import { useToasts } from "./hooks/useToasts";
 import { useUserState } from "./hooks/useUserState";
@@ -60,9 +65,11 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
   } = useUserState();
 
   const [view, setView] = useState<LibraryView>("all");
+  const [mediaKindFilter, setMediaKindFilter] = useState<MediaKindFilter>("all");
   const [feedFolderFilter, setFeedFolderFilter] = useState<string[]>([]);
   const [scrollToFolder, setScrollToFolder] = useState<string | null>(null);
   const [focusedFolder, setFocusedFolder] = useState<string | null>(null);
+  const [focusedSection, setFocusedSection] = useState<string | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
   const { skin, setSkin, isJaipur, isRastamanLight } = useAppTheme();
 
@@ -97,8 +104,26 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
     feedFolderFilter,
     selectedPlaylist,
     feedListenFilter: user.feedListenFilter,
+    mediaKindFilter,
     leadTrackIdRef,
   });
+
+  const audioTrackMap = useMemo(() => {
+    const m = new Map<string, Track>();
+    for (const t of catalog.tracks) {
+      if (trackKind(t) === "audio") m.set(t.id, t);
+    }
+    return m;
+  }, [catalog.tracks]);
+
+  const audioTracks = useMemo(
+    () => tracks.filter((t) => trackKind(t) === "audio"),
+    [tracks],
+  );
+  const audioTrackIds = useMemo(
+    () => audioTracks.map((t) => t.id),
+    [audioTracks],
+  );
 
   const entryLinkHandled = useRef(false);
 
@@ -191,10 +216,24 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
     patchTrackUrl,
     user,
     setUser,
-    tracks,
-    trackIds,
+    tracks: audioTracks,
+    trackIds: audioTrackIds,
     queue,
-    trackMap,
+    trackMap: audioTrackMap,
+    pushToast,
+  });
+
+  const videoPlayer = useVideoPlayer({
+    patchTrackUrl,
+    user,
+    setUser,
+    pushToast,
+  });
+
+  const textReader = useTextReader({
+    patchTrackUrl,
+    user,
+    setUser,
     pushToast,
   });
 
@@ -203,9 +242,9 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
   useEffect(() => {
     document.documentElement.classList.toggle(
       "has-player",
-      Boolean(player.currentTrackId),
+      Boolean(player.currentTrackId) || Boolean(videoPlayer.currentTrackId),
     );
-  }, [player.currentTrackId]);
+  }, [player.currentTrackId, videoPlayer.currentTrackId]);
 
   useEffect(() => {
     if (!import.meta.env.PROD || useServerMedia()) return;
@@ -321,13 +360,17 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
 
   const closeNav = () => setNavOpen(false);
 
-  const handleScrollToFolder = useCallback((folder: string) => {
-    setView("all");
-    setSelectedPlaylist(null);
-    setFocusedFolder(folder);
-    setScrollToFolder(folder);
-    closeNav();
-  }, []);
+  const handleScrollToFolder = useCallback(
+    (folder: string, section?: string) => {
+      setView("all");
+      setSelectedPlaylist(null);
+      setFocusedFolder(folder);
+      setFocusedSection(section ?? null);
+      setScrollToFolder(folder);
+      closeNav();
+    },
+    [],
+  );
 
   const handleFilterOnlyFolder = useCallback((folder: string) => {
     setView("all");
@@ -405,15 +448,49 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
     [catalog.tracks, pushToast],
   );
 
-  const handlePlayTrack = useCallback(
+  const handleOpenMedia = useCallback(
     (t: Track) => {
+      const kind = trackKind(t);
+      const { features } = getPlayerConfig();
+
+      if (kind === "video") {
+        if (features.video === false) {
+          pushToast("Видео отключено в конфиге");
+          return;
+        }
+        if (player.currentTrackId) void player.togglePlay();
+        if (videoPlayer.currentTrackId === t.id) {
+          void videoPlayer.togglePlay();
+          return;
+        }
+        void videoPlayer.playTrack(t);
+        return;
+      }
+
+      if (kind === "text") {
+        if (features.text === false) {
+          pushToast("Тексты отключены в конфиге");
+          return;
+        }
+        if (player.isPlaying) void player.togglePlay();
+        videoPlayer.stop();
+        void textReader.open(t);
+        return;
+      }
+
+      videoPlayer.stop();
       if (player.currentTrackId === t.id) {
         void player.togglePlay();
         return;
       }
       void player.playTrack(t);
     },
-    [player.currentTrackId, player.playTrack, player.togglePlay],
+    [
+      player,
+      pushToast,
+      textReader,
+      videoPlayer,
+    ],
   );
   const handleToggleLike = useCallback(
     (id: string) => {
@@ -439,7 +516,9 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <div
         className={
-          player.currentTrackId ? "app-shell has-player" : "app-shell"
+          player.currentTrackId || videoPlayer.currentTrackId
+            ? "app-shell has-player"
+            : "app-shell"
         }
       >
         <Sidebar
@@ -450,20 +529,28 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
           catalog={catalog}
           user={user}
           view={view}
+          mediaKindFilter={mediaKindFilter}
+          onMediaKindFilterChange={(f) => {
+            setMediaKindFilter(f);
+            ymGoal("media_kind_filter", { kind: f });
+          }}
           feedFolderFilter={feedFolderFilter}
           focusedFolder={focusedFolder}
+          focusedSection={focusedSection}
           selectedPlaylist={selectedPlaylist}
           resumeCount={resumeCount}
           onSelectView={(id) => {
             setView(id);
             setFeedFolderFilter([]);
             setSelectedPlaylist(null);
+            setFocusedSection(null);
             if (id === "resume") {
               setUser((prev) => ({ ...prev, feedListenFilter: "in-progress" }));
             }
             closeNav();
           }}
           onScrollToFolder={handleScrollToFolder}
+          onFocusSection={setFocusedSection}
           onAddFolderToSelection={handleAddFolderToSelection}
           onSelectPlaylist={(id) => {
             setView("playlist");
@@ -540,12 +627,17 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
             catalogLoading={catalogLoading}
             sectionTitle={sectionTitle}
             sectionSub={sectionSub}
-            activeTrackId={player.currentTrackId}
-            isPlaying={player.isPlaying}
+            activeTrackId={
+              player.currentTrackId ??
+              videoPlayer.currentTrackId ??
+              textReader.track?.id ??
+              null
+            }
+            isPlaying={player.isPlaying || videoPlayer.isPlaying}
             livePlayback={player.livePlayback}
             progressOf={progressOf}
             isLiked={isLiked}
-            onPlayTrack={handlePlayTrack}
+            onPlayTrack={handleOpenMedia}
             onToggleLike={handleToggleLike}
             onAddToPlaylist={addTrackToPlaylist}
             onOpenNav={() => setNavOpen(true)}
@@ -570,6 +662,21 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
         </main>
       </div>
       <ScrollToTop />
+      <VideoPlayerBar
+        currentTrack={videoPlayer.currentTrack}
+        bindVideoRef={videoPlayer.bindVideoRef}
+        isPlaying={videoPlayer.isPlaying}
+        isLoading={videoPlayer.isLoading}
+        onTogglePlay={() => void videoPlayer.togglePlay()}
+        onClose={() => videoPlayer.stop()}
+      />
+      <TextViewer
+        track={textReader.track}
+        content={textReader.content}
+        loading={textReader.loading}
+        onClose={textReader.close}
+        onScrollProgress={textReader.reportScroll}
+      />
       <PlayerBar
         currentTrack={player.currentTrack}
         currentTrackId={player.currentTrackId}

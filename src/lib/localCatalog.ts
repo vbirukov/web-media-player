@@ -10,9 +10,12 @@ export async function loadLocalCatalog(): Promise<Catalog> {
   const data = (await res.json()) as CatalogFile;
   return {
     sourceTitle: data.sourceTitle,
+    sections: data.sections ?? [],
     folders: data.folders,
     tracks: data.tracks.map((t) => ({
       ...t,
+      kind: t.kind,
+      section: t.section,
       url: mediaUrlForPath(t.path),
     })),
     loaded: true,

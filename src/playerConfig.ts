@@ -20,6 +20,10 @@ export type PlayerFeatures = {
   offline: boolean;
   pwa: boolean;
   share: boolean;
+  /** Видеоплеер (по умолчанию включён) */
+  video?: boolean;
+  /** Просмотр текстов md/txt/html (по умолчанию включён) */
+  text?: boolean;
 };
 
 export type PlayerConfig = {

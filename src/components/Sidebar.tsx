@@ -1,9 +1,15 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { AppSkin } from "../themes";
 import { BrandLogo } from "./BrandLogo";
 import { Icon } from "./icons/Icon";
 import { IconButtonIcon } from "./IconButton";
+import { MediaKindFilter as MediaKindFilterBar } from "./MediaKindFilter";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import {
+  buildCatalogSections,
+  type CatalogSectionNav,
+} from "../lib/catalogSections";
+import type { MediaKindFilter as MediaKindFilterValue } from "../lib/mediaKind";
 import type { Catalog } from "../types/catalog";
 import type { LibraryView, UserState } from "../types/user";
 
@@ -15,12 +21,16 @@ type Props = {
   catalog: Catalog;
   user: UserState;
   view: LibraryView;
+  mediaKindFilter: MediaKindFilterValue;
+  onMediaKindFilterChange: (filter: MediaKindFilterValue) => void;
   feedFolderFilter: string[];
   focusedFolder: string | null;
+  focusedSection: string | null;
   selectedPlaylist: string | null;
   resumeCount: number;
   onSelectView: (view: LibraryView) => void;
-  onScrollToFolder: (folder: string) => void;
+  onScrollToFolder: (folder: string, section?: string) => void;
+  onFocusSection: (section: string | null) => void;
   onAddFolderToSelection: (folder: string) => void;
   onSelectPlaylist: (playlistId: string) => void;
   onOpenPlaylistModal: () => void;
@@ -30,6 +40,124 @@ type Props = {
   offlineSummary?: ReactNode;
 };
 
+function SectionBlock({
+  section,
+  expanded,
+  onToggle,
+  focusedSection,
+  focusedFolder,
+  feedFolderFilter,
+  selectionActive,
+  selectionSet,
+  onScrollToFolder,
+  onFocusSection,
+  onAddFolderToSelection,
+  onShareFolder,
+  renderFolderOffline,
+}: {
+  section: CatalogSectionNav;
+  expanded: boolean;
+  onToggle: () => void;
+  focusedSection: string | null;
+  focusedFolder: string | null;
+  feedFolderFilter: string[];
+  selectionActive: boolean;
+  selectionSet: Set<string>;
+  onScrollToFolder: (folder: string, section?: string) => void;
+  onFocusSection: (section: string | null) => void;
+  onAddFolderToSelection: (folder: string) => void;
+  onShareFolder: (folder: string) => void;
+  renderFolderOffline?: (folder: string) => ReactNode;
+}) {
+  const isSectionFocused = focusedSection === section.id;
+
+  return (
+    <div
+      className={
+        isSectionFocused
+          ? "nav-section-block is-section-active"
+          : "nav-section-block"
+      }
+    >
+      <button
+        type="button"
+        className="nav-section-block__head"
+        onClick={() => {
+          onToggle();
+          onFocusSection(section.id);
+        }}
+        aria-expanded={expanded}
+      >
+        <Icon
+          name={expanded ? "chevron-down" : "chevron-up"}
+          size={14}
+          aria-hidden
+        />
+        <span className="nav-item__label">{section.title}</span>
+        <span className="nav-sublabel">{section.trackCount}</span>
+      </button>
+      {expanded ? (
+        <div className="nav-section-block__folders">
+          {section.folders.map((folder) => {
+            const inSelection = selectionSet.has(folder.name);
+            const isActive = focusedFolder === folder.name || inSelection;
+            const kindHint = [
+              folder.kinds.audio ? `${folder.kinds.audio} ауд.` : "",
+              folder.kinds.video ? `${folder.kinds.video} вид.` : "",
+              folder.kinds.text ? `${folder.kinds.text} тек.` : "",
+            ]
+              .filter(Boolean)
+              .join(" · ");
+
+            return (
+              <div
+                key={`${section.id}:${folder.name}`}
+                className={
+                  isActive
+                    ? "nav-item nav-item--folder is-active"
+                    : "nav-item nav-item--folder"
+                }
+              >
+                <button
+                  type="button"
+                  className="nav-folder-card__open"
+                  onClick={() => onScrollToFolder(folder.name, section.id)}
+                >
+                  <span className="nav-item__label">{folder.name}</span>
+                  <span className="nav-sublabel">
+                    {kindHint || `${folder.trackCount} материалов`}
+                    {inSelection ? " · в выборке" : ""}
+                  </span>
+                </button>
+                {selectionActive && !inSelection ? (
+                  <button
+                    type="button"
+                    className="nav-item__share nav-item__share--stacked nav-item__add-selection"
+                    onClick={() => onAddFolderToSelection(folder.name)}
+                  >
+                    <Icon name="list-plus" size={15} aria-hidden />
+                    <span>В выборку</span>
+                  </button>
+                ) : null}
+                {!selectionActive ? renderFolderOffline?.(folder.name) : null}
+                <button
+                  type="button"
+                  className="nav-item__share nav-item__share--stacked"
+                  onClick={() => onShareFolder(folder.name)}
+                  aria-label={`Поделиться «${folder.name}»`}
+                >
+                  <Icon name="share" size={15} aria-hidden />
+                  <span>Поделиться</span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function Sidebar({
   skin,
   onSkinChange,
@@ -38,12 +166,16 @@ export function Sidebar({
   catalog,
   user,
   view,
+  mediaKindFilter,
+  onMediaKindFilterChange,
   feedFolderFilter,
   focusedFolder,
+  focusedSection,
   selectedPlaylist,
   resumeCount,
   onSelectView,
   onScrollToFolder,
+  onFocusSection,
   onAddFolderToSelection,
   onSelectPlaylist,
   onOpenPlaylistModal,
@@ -64,13 +196,24 @@ export function Sidebar({
     [feedFolderFilter],
   );
 
-  const folderTrackCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const track of catalog.tracks) {
-      counts.set(track.folder, (counts.get(track.folder) ?? 0) + 1);
-    }
-    return counts;
-  }, [catalog.tracks]);
+  const sections = useMemo(
+    () => buildCatalogSections(catalog, mediaKindFilter),
+    [catalog, mediaKindFilter],
+  );
+
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set());
+
+  const isExpanded = (id: string) =>
+    expandedSections.has(id) || focusedSection === id || sections.length <= 2;
+
+  const toggleSection = (id: string) => {
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <>
@@ -104,9 +247,7 @@ export function Sidebar({
             onClick={() => onSelectView("all")}
           >
             Весь каталог{" "}
-            <span className="nav-sublabel">
-              ({catalog.tracks.length} треков)
-            </span>
+            <span className="nav-sublabel">({catalog.tracks.length})</span>
           </button>
           {extraViews.map(([id, label]) => (
             <button
@@ -118,62 +259,41 @@ export function Sidebar({
             </button>
           ))}
         </section>
+        <section className="side-section">
+          <h2>Тип контента</h2>
+          <MediaKindFilterBar
+            catalog={catalog}
+            value={mediaKindFilter}
+            onChange={onMediaKindFilterChange}
+          />
+        </section>
         {offlineSummary ? (
           <section className="side-section">
             <h2>Офлайн</h2>
             {offlineSummary}
           </section>
         ) : null}
-        <section className="side-section">
-          <h2>Коллекция</h2>
-          <div className="side-list">
-            {catalog.folders.map((folder) => {
-              const inSelection = selectionSet.has(folder);
-              const isActive =
-                focusedFolder === folder || inSelection;
-              return (
-              <div
-                key={folder}
-                className={
-                  isActive
-                    ? "nav-item nav-item--folder is-active"
-                    : "nav-item nav-item--folder"
-                }
-              >
-                <button
-                  type="button"
-                  className="nav-folder-card__open"
-                  onClick={() => onScrollToFolder(folder)}
-                >
-                  <span className="nav-item__label">{folder}</span>
-                  <span className="nav-sublabel">
-                    {folderTrackCounts.get(folder) ?? 0} сказок
-                    {inSelection ? " · в выборке" : ""}
-                  </span>
-                </button>
-                {selectionActive && !inSelection ? (
-                  <button
-                    type="button"
-                    className="nav-item__share nav-item__share--stacked nav-item__add-selection"
-                    onClick={() => onAddFolderToSelection(folder)}
-                  >
-                    <Icon name="list-plus" size={15} aria-hidden />
-                    <span>В выборку</span>
-                  </button>
-                ) : null}
-                {!selectionActive ? renderFolderOffline?.(folder) : null}
-                <button
-                  type="button"
-                  className="nav-item__share nav-item__share--stacked"
-                  onClick={() => onShareFolder(folder)}
-                  aria-label={`Поделиться альбомом «${folder}»`}
-                >
-                  <Icon name="share" size={15} aria-hidden />
-                  <span>Поделиться</span>
-                </button>
-              </div>
-            );
-            })}
+        <section className="side-section side-section--scroll">
+          <h2>Библиотека</h2>
+          <div className="side-list side-list--sections">
+            {sections.map((section) => (
+              <SectionBlock
+                key={section.id}
+                section={section}
+                expanded={isExpanded(section.id)}
+                onToggle={() => toggleSection(section.id)}
+                focusedSection={focusedSection}
+                focusedFolder={focusedFolder}
+                feedFolderFilter={feedFolderFilter}
+                selectionActive={selectionActive}
+                selectionSet={selectionSet}
+                onScrollToFolder={onScrollToFolder}
+                onFocusSection={onFocusSection}
+                onAddFolderToSelection={onAddFolderToSelection}
+                onShareFolder={onShareFolder}
+                renderFolderOffline={renderFolderOffline}
+              />
+            ))}
           </div>
         </section>
         <section className="side-section">

@@ -7,6 +7,10 @@ export const IN_PROGRESS_MIN_SEC = 60;
 
 export function listenStatus(progress: Progress): ListenStatus {
   if (progress.completed) return "completed";
+  if (progress.duration === 100) {
+    if (progress.position >= 5) return "in-progress";
+    return "unstarted";
+  }
   if (progress.position >= IN_PROGRESS_MIN_SEC) return "in-progress";
   return "unstarted";
 }

@@ -18,6 +18,8 @@ import { catalogWithServerMediaUrls } from "../lib/serverMediaCatalog";
 import { useServerMedia } from "../lib/mediaUrl";
 import { runCatalogWorker } from "../lib/catalogWorker";
 import { listenStatus, matchesFeedListenFilter } from "../lib/listenStatus";
+import { matchesMediaKindFilter, trackKind, type MediaKindFilter } from "../lib/mediaKind";
+import { normalizeCatalog } from "../lib/normalizeCatalog";
 import { pickAdjacentId, shuffleIds, shuffleIdsLeading } from "../lib/queue";
 import type { Catalog, Track } from "../types/catalog";
 import type { FeedListenFilter, LibraryView, UserState } from "../types/user";
@@ -27,6 +29,7 @@ type Filters = {
   feedFolderFilter: string[];
   selectedPlaylist: string | null;
   feedListenFilter: FeedListenFilter;
+  mediaKindFilter: MediaKindFilter;
   /** Ref на текущий трек — при включении shuffle ставится первым в очереди */
   leadTrackIdRef?: RefObject<string | null>;
 };
@@ -45,9 +48,12 @@ function resolveLeadId(
 export function useCatalog(user: UserState, filters: Filters) {
   const [catalog, setCatalog] = useState<Catalog>(() => {
     const cached = loadCachedCatalog();
-    return cached?.tracks.length
-      ? catalogWithServerMediaUrls(cached)
+    const base = cached?.tracks.length
+      ? cached
       : getPlayerConfig().getFallbackCatalog();
+    return catalogWithServerMediaUrls(
+      normalizeCatalog({ ...base, sections: base.sections ?? [] }),
+    );
   });
   const [initialLoading, setInitialLoading] = useState(() => !loadCachedCatalog()?.tracks.length);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
@@ -56,7 +62,7 @@ export function useCatalog(user: UserState, filters: Filters) {
   const refreshInFlightRef = useRef(false);
 
   const applyCatalog = useCallback((cat: Catalog) => {
-    const prepared = catalogWithServerMediaUrls(cat);
+    const prepared = catalogWithServerMediaUrls(normalizeCatalog(cat));
     setCatalog(prepared);
     saveCachedCatalog(prepared);
     markCatalogRefreshed();
@@ -160,17 +166,26 @@ export function useCatalog(user: UserState, filters: Filters) {
         matchesFeedListenFilter(progressOf(t.id), filters.feedListenFilter),
       );
     }
+    list = list.filter((t) =>
+      matchesMediaKindFilter(t, filters.mediaKindFilter),
+    );
     return list;
   }, [
     catalog.tracks,
     filters.feedListenFilter,
     filters.feedFolderFilter,
+    filters.mediaKindFilter,
     filters.selectedPlaylist,
     filters.view,
     progressOf,
     user.likes,
     user.playlists,
   ]);
+
+  const audioFilteredTracks = useMemo(
+    () => filteredTracks.filter((t) => trackKind(t) === "audio"),
+    [filteredTracks],
+  );
 
   const sortTracks = useCallback(
     (list: Track[]) =>
@@ -183,8 +198,8 @@ export function useCatalog(user: UserState, filters: Filters) {
   );
 
   const filteredIds = useMemo(
-    () => filteredTracks.map((t) => t.id),
-    [filteredTracks],
+    () => audioFilteredTracks.map((t) => t.id),
+    [audioFilteredTracks],
   );
 
   const filteredIdKey = filteredIds.join("\u0001");
@@ -195,7 +210,7 @@ export function useCatalog(user: UserState, filters: Filters) {
     shuffleOnRef.current = user.shuffle;
 
     if (!user.shuffle) {
-      setQueue(sortTracks(filteredTracks).map((t) => t.id));
+      setQueue(sortTracks(audioFilteredTracks).map((t) => t.id));
       return;
     }
 
@@ -224,7 +239,14 @@ export function useCatalog(user: UserState, filters: Filters) {
       if (!added.length) return kept;
       return [...kept, ...shuffleIds(added)];
     });
-  }, [filteredIdKey, filteredIds, filters.leadTrackIdRef, sortTracks, user.shuffle]);
+  }, [
+    audioFilteredTracks,
+    filteredIdKey,
+    filteredIds,
+    filters.leadTrackIdRef,
+    sortTracks,
+    user.shuffle,
+  ]);
 
   const trackById = useMemo(
     () => new Map(filteredTracks.map((t) => [t.id, t])),
@@ -277,14 +299,16 @@ export function useCatalog(user: UserState, filters: Filters) {
 
   const sectionSub =
     filters.feedFolderFilter.length === 1
-      ? "Все треки выбранной серии."
+      ? "Материалы выбранного раздела."
       : filters.feedFolderFilter.length > 1
-        ? `${filteredTracks.length} сказок в выборке.`
-        : useServerMedia()
-          ? "Каталог и аудио с сервера."
-          : catalog.loaded
-            ? "Живой индекс публичной папки Яндекс.Диска."
-            : "Идет fallback-режим до полной индексации каталога.";
+        ? `${filteredTracks.length} материалов в выборке.`
+        : filters.mediaKindFilter !== "all"
+          ? `Фильтр: ${filters.mediaKindFilter}.`
+          : useServerMedia()
+            ? "Каталог с сервера: аудио, видео и тексты."
+            : catalog.loaded
+              ? "Индекс публичной папки Яндекс.Диска."
+              : "Fallback до полной индексации каталога.";
 
   const nextTrackId = useCallback(
     (currentTrackId: string | null) => {

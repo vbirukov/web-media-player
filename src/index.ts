@@ -14,3 +14,5 @@ export {
 } from "./playerConfig";
 export { EmbedApp } from "./EmbedApp";
 export { DEFAULT_THEME_OPTIONS, getThemeOptions, type AppSkin } from "./themes";
+export type { MediaKind, Track, Catalog } from "./types/catalog";
+export type { MediaKindFilter } from "./lib/mediaKind";

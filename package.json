@@ -1,6 +1,6 @@
 {
-  "name": "@haiduk/player",
-  "version": "0.1.0",
+  "name": "@vbonline/player",
+  "version": "0.2.0",
   "description": "React audio library player engine (catalog, playback, offline, themes)",
   "type": "module",
   "license": "UNLICENSED",

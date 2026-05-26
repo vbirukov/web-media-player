@@ -2,6 +2,7 @@ import { memo, useEffect, useState } from "react";
 import { fmtTime } from "../lib/format";
 import { isStubTrack } from "../lib/diskDownload";
 import { listenStatus, listenStatusLabel } from "../lib/listenStatus";
+import { mediaActionLabel, trackKind } from "../lib/mediaKind";
 import { Icon } from "./icons/Icon";
 import { CardPlaylistMenu } from "./CardPlaylistMenu";
 import { IconButton, PlayPauseIcon } from "./IconButton";
@@ -90,7 +91,8 @@ function TrackCardInner({
   const isRow = layout === "rows";
 
   const stub = isStubTrack(track);
-  const showOffline = Boolean(onOfflineAction) && !stub;
+  const kind = trackKind(track);
+  const showOffline = Boolean(onOfflineAction) && !stub && kind === "audio";
 
   const cardClass = [
     "card",
@@ -160,11 +162,7 @@ function TrackCardInner({
 
   const playLabel = stub
     ? "Подготовлено"
-    : isActive && isPlaying
-      ? "Пауза"
-      : isActive
-        ? "Продолжить"
-        : "Слушать";
+    : mediaActionLabel(kind, isActive && isPlaying);
 
   const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
     if (!mobileTapPlay) return;
@@ -271,6 +269,9 @@ function TrackCardInner({
       ) : (
         <>
           <div className="card-pills">
+            <span className={`pill pill--kind pill--kind-${kind}`}>
+              {kind === "audio" ? "Аудио" : kind === "video" ? "Видео" : "Текст"}
+            </span>
             {showFolderName ? (
               <CardFolderLink
                 folder={track.folder}

@@ -1,3 +1,5 @@
+export type MediaKind = "audio" | "video" | "text";
+
 export type Track = {
   id: string;
   title: string;
@@ -5,6 +7,9 @@ export type Track = {
   folder: string;
   folderPath: string;
   path: string;
+  /** Раздел библиотеки (верхний уровень навигации) */
+  section?: string;
+  kind?: MediaKind;
   size?: number;
   modified?: string;
   mimeType?: string;
@@ -13,6 +18,7 @@ export type Track = {
 
 export type Catalog = {
   sourceTitle: string;
+  sections: string[];
   folders: string[];
   tracks: Track[];
   loaded: boolean;
