@@ -5,6 +5,7 @@ import { TrackCover } from "./components/TrackCover";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
 import { useCatalog } from "./hooks/useCatalog";
 import { useEmbedUserState } from "./hooks/useEmbedUserState";
+import { resolveBranding } from "./lib/branding";
 import { parseEmbedParams } from "./lib/embed";
 import { ymGoal } from "./lib/metrika";
 import { sharePageUrl, resolveSiteOrigin } from "./lib/shareOg";
@@ -14,6 +15,7 @@ const catalogFilters = {
   feedFolderFilter: [],
   selectedPlaylist: null,
   feedListenFilter: "all" as const,
+  mediaKindFilter: "all" as const,
 };
 
 export function EmbedApp() {
@@ -80,7 +82,7 @@ export function EmbedApp() {
   if (!track) {
     return (
       <div className="embed-root">
-        <p className="embed-state">Сказка не найдена</p>
+        <p className="embed-state">{resolveBranding().embedNotFound}</p>
       </div>
     );
   }
@@ -135,7 +137,7 @@ export function EmbedApp() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Открыть в Haiduk
+            {resolveBranding().embedOpenLabel}
           </a>
         </footer>
       </article>

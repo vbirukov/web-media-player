@@ -1,12 +1,5 @@
 import { getThemeOptions, type AppSkin } from "../themes";
 
-const THEME_MARKS: Record<AppSkin, string> = {
-  rastaman: "☽",
-  "rastaman-light": "☀",
-  jaipur: "◆",
-  "moon-dub": "◎",
-};
-
 type Props = {
   skin: AppSkin;
   onSkinChange: (skin: AppSkin) => void;
@@ -29,9 +22,11 @@ export function ThemeSwitcher({ skin, onSkinChange, compact }: Props) {
           aria-pressed={skin === opt.id}
           title={`${opt.label} — ${opt.description}`}
         >
-          <span className="theme-switcher__mark" aria-hidden>
-            {THEME_MARKS[opt.id]}
-          </span>
+          {opt.mark ? (
+            <span className="theme-switcher__mark" aria-hidden>
+              {opt.mark}
+            </span>
+          ) : null}
           <span className="theme-switcher__label">{opt.shortLabel}</span>
         </button>
       ))}

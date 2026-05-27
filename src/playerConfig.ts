@@ -1,5 +1,9 @@
+import type { PlayerBranding } from "./lib/branding";
 import type { Catalog } from "./types/catalog";
-import type { ThemeMeta } from "./themes/types";
+import type { SidebarBrandConfig, SidebarConfig, SidebarThemeConfig, ThemeMeta } from "./themes/types";
+
+export type { SidebarConfig, SidebarBrandConfig, SidebarThemeConfig };
+export type { PlayerBranding };
 
 export type PlayerStorageKeys = {
   user: string;
@@ -32,7 +36,13 @@ export type PlayerConfig = {
   features: PlayerFeatures;
   getFallbackCatalog: () => Catalog;
   themeOptions: ThemeMeta[];
-  /** Предупреждение в консоль, если нет proxy/media в prod */
+  /** Кастомизация сайдбара: бренд, темы */
+  sidebar?: SidebarConfig;
+  /** Название приложения, OG, embed, Media Session (см. также sidebar.brand) */
+  branding?: PlayerBranding;
+  /**
+   * @deprecated Используй `branding.appTitle`
+   */
   appName?: string;
 };
 
@@ -45,7 +55,7 @@ export function setPlayerConfig(config: PlayerConfig): void {
 export function getPlayerConfig(): PlayerConfig {
   if (!activeConfig) {
     throw new Error(
-      "[@haiduk/player] Вызови setPlayerConfig() до рендера PlayerApp",
+      "[@vbonline/player] Вызови setPlayerConfig() до рендера PlayerApp",
     );
   }
   return activeConfig;

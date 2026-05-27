@@ -1,5 +1,6 @@
 import { useEffect, type RefObject } from "react";
 import { ASSETS, assetUrl } from "../lib/assets";
+import { resolveBranding } from "../lib/branding";
 import { artworkUrlForTrack } from "../lib/cover";
 
 type TrackInfo = {
@@ -27,7 +28,7 @@ export function useMediaSession(
     navigator.mediaSession.metadata = new MediaMetadata({
       title: track.title,
       artist: track.folder,
-      album: "Haiduk — аудиосказки",
+      album: resolveBranding().mediaSessionAlbum,
       artwork: [
         { src: artworkUrlForTrack(track), sizes: "512x512", type: "image/webp" },
         { src: assetUrl(ASSETS.brandLogo), sizes: "512x512", type: "image/webp" },

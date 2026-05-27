@@ -1,0 +1,17 @@
+/* Пустое состояние ленты: .cards с grid тянет единственный блок влево */
+.library-feed-content .cards.cards--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: min(50vh, 420px);
+  grid-template-columns: unset;
+}
+
+.library-feed-content .cards.cards--empty .empty {
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+  text-align: center;
+}

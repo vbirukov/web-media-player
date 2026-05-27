@@ -93,7 +93,7 @@ export function PlayerTransport({
           size={btnSize}
           disabled={shareDisabled}
           onClick={onShare}
-          aria-label="Поделиться сказкой"
+          aria-label="Поделиться"
           title="Поделиться ссылкой"
         >
           <Icon name="share" size={icon} />

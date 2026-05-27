@@ -81,6 +81,6 @@ export async function shareTrack(opts: {
     title,
     text,
     url,
-    promptLabel: "Ссылка на сказку:",
+    promptLabel: "Ссылка на материал:",
   });
 }

@@ -1,48 +1,66 @@
 # @vbonline/player
 
-Фронтовый движок мультимедиа-библиотеки: аудио, видео, тексты; каталог (Yandex Disk / локальные media), плеер, плейлисты, офлайн, темы, PWA, embed.
+Фронтовый движок мультимедиа-библиотеки: аудио, видео, тексты; каталог (Yandex Disk / `catalog.json`), плеер, плейлисты, офлайн, темы, PWA, embed.
 
-## Быстрый старт (в монорепо Gaiduk)
+**npm:** https://www.npmjs.com/package/@vbonline/player
+
+## Документация
+
+| Документ | Для кого |
+|----------|----------|
+| **[docs/INTEGRATION.md](./docs/INTEGRATION.md)** | Полная инструкция по подключению к новому Vite+React проекту |
+| **[docs/AGENT.md](./docs/AGENT.md)** | Краткий указатель для AI-агента |
+
+## Быстрый старт
+
+```bash
+npm install @vbonline/player @tanstack/react-virtual
+```
 
 ```ts
-import { setPlayerConfig, PlayerApp } from "@vbonline/player";
+// src/player/setup.ts
+import { setPlayerConfig, DEFAULT_THEME_OPTIONS } from "@vbonline/player";
 
 setPlayerConfig({
-  storage: { user: "my-app-user-v1", /* ... */ },
-  catalog: { publicDiskKey: "...", apiRoot: "..." },
-  features: { offline: true, pwa: true, share: true },
+  branding: {
+    appTitle: "Моя библиотека",
+    siteName: "Моя библиотека",
+    siteDescription: "Аудио, видео и тексты.",
+  },
+  sidebar: {
+    brand: { title: "Моя библиотека", logoSrc: "/logo.svg" },
+  },
+  storage: {
+    user: "my-app-user-v1",
+    catalogRefresh: "my-app-catalog-refresh-v1",
+    catalogCache: "my-app-catalog-cache-v1",
+  },
+  catalog: {
+    publicDiskKey: "https://disk.yandex.ru/d/XXXX",
+    apiRoot: "https://cloud-api.yandex.net/v1/disk/public/resources",
+  },
+  features: { offline: true, pwa: true, share: true, video: true, text: true },
   getFallbackCatalog: () => ({
+    sourceTitle: "",
     tracks: [],
     folders: [],
     sections: [],
     loaded: false,
   }),
-  features: { offline: true, pwa: true, share: true, video: true, text: true },
   themeOptions: DEFAULT_THEME_OPTIONS,
 });
-
-<PlayerApp
-  renderHeader={(p) => <MyHeader {...p} />}
-  renderHero={(p) => <MyHero {...p} />}
-/>
 ```
 
-## Типы контента
+```tsx
+// main.tsx — import "./player/setup" первым
+// App.tsx
+import { PlayerApp } from "@vbonline/player";
 
-| kind | расширения (Диск / `catalog.json`) |
-|------|-------------------------------------|
-| audio | mp3, m4a, ogg, wav, … |
-| video | mp4, webm, mov, … |
-| text | md, txt, html |
+<PlayerApp renderHeader={(p) => <MyHeader {...p} />} />
+```
 
-В сайдбаре: фильтр по типу + дерево **раздел → папка** (вложенные папки на Диске → раздел = верхний каталог).
+Дальше — **[docs/INTEGRATION.md](./docs/INTEGRATION.md)** (Vite, env, CSS, catalog.json, embed, troubleshooting).
 
-Поля в `catalog.json`: `kind`, `section` (опционально).
+## Env
 
-## Стили хоста
-
-Добавь CSS для новых блоков: `.video-player-bar`, `.text-viewer`, `.media-kind-filter`, `.nav-section-block`, `.pill--kind`.
-
-## Отдельное репо
-
-См. [docs/ENGINE_EXTRACT.md](./docs/ENGINE_EXTRACT.md).
+См. [.env.example](./.env.example).

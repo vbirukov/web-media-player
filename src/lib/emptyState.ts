@@ -1,3 +1,4 @@
+import { resolveBranding } from "./branding";
 import { feedListenFilterLabel } from "./listenStatus";
 import type { FeedListenFilter, LibraryView } from "../types/user";
 
@@ -16,6 +17,7 @@ export function emptyStateCopy({
   playlistName,
   feedListenFilter,
 }: Args): { title: string; hint: string } {
+  const { itemLabelGenitivePlural } = resolveBranding();
   if (
     feedListenFilter !== "all" &&
     view !== "resume" &&
@@ -23,7 +25,7 @@ export function emptyStateCopy({
   ) {
     const label = feedListenFilterLabel[feedListenFilter as keyof typeof feedListenFilterLabel];
     return {
-      title: `Нет сказок: «${label}»`,
+      title: `Нет ${itemLabelGenitivePlural}: «${label}»`,
       hint: "Смените фильтр или откройте другой раздел каталога.",
     };
   }
@@ -42,13 +44,13 @@ export function emptyStateCopy({
   if (view === "resume") {
     return {
       title: "Нечего продолжать",
-      hint: "Здесь сказки, которые вы начали слушать (от минуты) и ещё не дослушали до конца.",
+      hint: `Здесь ${itemLabelGenitivePlural}, которые вы начали и ещё не завершили.`,
     };
   }
   if (view === "liked") {
     return {
       title: "Лайков пока нет",
-      hint: "Отмечайте понравившиеся сказки лайком — они соберутся в этом разделе.",
+      hint: `Отмечайте понравившиеся ${itemLabelGenitivePlural} лайком — они соберутся в этом разделе.`,
     };
   }
   if (view === "playlist" && selectedPlaylist) {

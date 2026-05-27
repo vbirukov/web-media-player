@@ -166,7 +166,7 @@ export function PlayerBar({
               <div className="now-box-text">
                 <strong>{currentTrack?.title ?? "Ничего не выбрано"}</strong>
                 <div className="mini-text">
-                  {currentTrack?.folder ?? "Выберите сказку из каталога"}
+                  {currentTrack?.folder ?? "Выберите материал из каталога"}
                 </div>
               </div>
             </div>

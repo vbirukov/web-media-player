@@ -16,7 +16,7 @@ export const ASSETS = {
   glassNoise: "/images/modal-glass-noise.png",
   glassNoiseDark: "/images/modal-glass-noise-dark.png",
   splash: "/images/splash.webp",
-  rastaBikeVideo: "/haiduk-rasta-bike.mp4",
+  rastaBikeVideo: "/rasta-bike.mp4",
   rastaDarkBgVideo: "/rasta-dark-bg.mp4",
   rastaDarkBgVideoAlt: "/rasta-dark-alternate-bg.mp4",
   rastaDarkBgVideos: [

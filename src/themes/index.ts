@@ -1,7 +1,15 @@
 import type { AppSkin, Appearance, ThemeMeta } from "./types";
 import { getPlayerConfig, storageKey } from "../playerConfig";
 
-export type { AppSkin, Appearance, ThemeMeta } from "./types";
+export type {
+  AppSkin,
+  BuiltinSkin,
+  Appearance,
+  ThemeMeta,
+  SidebarBrandConfig,
+  SidebarThemeConfig,
+  SidebarConfig,
+} from "./types";
 export { jaipurTheme } from "./jaipur";
 export { moonDubTheme } from "./moon-dub";
 export { rastamanTheme } from "./rastaman";
@@ -26,40 +34,45 @@ export const DEFAULT_THEME_OPTIONS: ThemeMeta[] = [
     label: "Раста тёмная",
     shortLabel: "Раста",
     description: "Джунгли, закат, кальян",
+    mark: "☽",
+    themeColor: "#0c1115",
   },
   {
     id: "rastaman-light",
     label: "Раста светлая",
     shortLabel: "Светлая",
     description: "Солнечный постер, флаг, комикс",
+    mark: "☀",
+    themeColor: "#fff5bf",
   },
   {
     id: "jaipur",
     label: "Джайпур",
     shortLabel: "Джайпур",
     description: "Розовый город, jali, арки",
+    mark: "◆",
+    dataTheme: "jaipur",
+    themeColor: "#c5796d",
   },
   {
     id: "moon-dub",
     label: "Лунная даб-библиотека",
     shortLabel: "Луна",
     description: "Ночной архив, янтарь, дым",
+    mark: "◎",
+    themeColor: "#12100e",
   },
 ];
 
 export function readStoredSkin(): AppSkin {
   try {
     const v = localStorage.getItem(skinStorageKey());
-    if (
-      v === "jaipur" ||
-      v === "rastaman" ||
-      v === "rastaman-light" ||
-      v === "moon-dub"
-    ) {
-      return v;
+    if (v) {
+      const opts = getPlayerConfig().themeOptions;
+      if (opts.some((t) => t.id === v)) return v;
     }
   } catch {
-    /* private mode */
+    /* private mode or config not ready */
   }
   try {
     if (localStorage.getItem(appearanceStorageKey()) === "light") {
@@ -68,7 +81,8 @@ export function readStoredSkin(): AppSkin {
   } catch {
     /* private mode */
   }
-  return "rastaman";
+  const opts = getPlayerConfig().themeOptions;
+  return opts[0]?.id ?? "rastaman";
 }
 
 export function readStoredAppearance(): Appearance {
@@ -81,25 +95,16 @@ export function readStoredAppearance(): Appearance {
   return "dark";
 }
 
-const THEME_COLOR: Record<AppSkin, string> = {
-  rastaman: "#0c1115",
-  "rastaman-light": "#fff5bf",
-  jaipur: "#c5796d",
-  "moon-dub": "#12100e",
-};
-
 export function applyDocumentTheme(skin: AppSkin) {
   const root = document.documentElement;
   root.setAttribute("data-skin", skin);
-  if (skin === "jaipur") {
-    root.setAttribute("data-theme", "jaipur");
-  } else if (skin === "rastaman-light") {
-    root.setAttribute("data-theme", "rastaman-light");
-  } else {
-    root.setAttribute("data-theme", "dark");
-  }
 
+  const meta = getPlayerConfig().themeOptions.find((t) => t.id === skin);
+  const dataTheme = meta?.dataTheme ?? (skin === "rastaman-light" ? "rastaman-light" : "dark");
+  root.setAttribute("data-theme", dataTheme);
+
+  const color = meta?.themeColor ?? "#000000";
   document
     .querySelectorAll('meta[name="theme-color"]')
-    .forEach((el) => el.setAttribute("content", THEME_COLOR[skin]));
+    .forEach((el) => el.setAttribute("content", color));
 }

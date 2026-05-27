@@ -1,6 +1,6 @@
 {
   "name": "@vbonline/player",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "React audio library player engine (catalog, playback, offline, themes)",
   "type": "module",
   "license": "UNLICENSED",
@@ -8,6 +8,7 @@
   "files": ["src", "README.md"],
   "exports": {
     ".": "./src/index.ts",
+    "./layout.css": "./src/styles/layout.css",
     "./lib/*": "./src/lib/*",
     "./themes": "./src/themes/index.ts"
   },

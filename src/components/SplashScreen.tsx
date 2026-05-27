@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ASSETS } from "../lib/assets";
+import { resolveBranding } from "../lib/branding";
 import { storageKey } from "../playerConfig";
 
 const SPLASH_MS = 1100;
@@ -48,7 +49,7 @@ export function SplashScreen() {
     <div
       className={phase === "hide" ? "splash-screen splash-screen--hide" : "splash-screen"}
       role="img"
-      aria-label="Haiduk"
+      aria-label={resolveBranding().splashAriaLabel}
     >
       <img src={ASSETS.splash} alt="" />
     </div>

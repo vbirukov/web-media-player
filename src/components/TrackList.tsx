@@ -319,7 +319,7 @@ export function TrackList({
           onTrackOfflineAction={onTrackOfflineAction}
         />
       ) : tracks.length === 0 ? (
-        <section className="cards">
+        <section className="cards cards--empty" aria-live="polite">
           <div className="empty">
             <h4 className="empty-title">{empty.title}</h4>
             <p>{empty.hint}</p>

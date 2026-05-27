@@ -1,7 +1,15 @@
 import type { Track } from "../types/catalog";
+import {
+  resolveBranding,
+  shareDescriptionForCatalogBranded,
+  shareDescriptionForFolderBranded,
+  shareDescriptionForTrackBranded,
+} from "./branding";
 import { artworkUrlForTrack, defaultCoverPath } from "./cover";
 
-const SITE_NAME = "Haiduk — аудиосказки Дмитрия Гайдука";
+function siteName(): string {
+  return resolveBranding().siteName;
+}
 
 export function utf8ShareSlug(value: string): string {
   const bytes = new TextEncoder().encode(value);
@@ -46,11 +54,7 @@ export function shareTitleForTrack(track: Pick<Track, "title">): string {
 export function shareDescriptionForTrack(
   track: Pick<Track, "title" | "folder">,
 ): string {
-  const series = track.folder?.trim();
-  if (series) {
-    return `Сказка «${track.title}» · ${series} — Дмитрий Гайдук`;
-  }
-  return `Сказка «${track.title}» — Дмитрий Гайдук`;
+  return shareDescriptionForTrackBranded(track);
 }
 
 export function resolveSiteOrigin(explicit?: string): string {
@@ -77,23 +81,18 @@ export function shareDescriptionForFolder(
   folder: string,
   trackCount: number,
 ): string {
-  const n = trackCount > 0 ? `${trackCount} сказок` : "аудиосказки";
-  return `Альбом «${folder}» — ${n}. Дмитрий Гайдук`;
+  return shareDescriptionForFolderBranded(folder, trackCount);
 }
 
 export function shareTitleForCatalog(): string {
-  return "Каталог аудиосказок";
+  return resolveBranding().catalogShareTitle;
 }
 
 export function shareDescriptionForCatalog(
   trackCount: number,
   albumCount?: number,
 ): string {
-  const albums =
-    albumCount != null && albumCount > 0
-      ? ` · ${albumCount} альбомов`
-      : "";
-  return `Каталог Haiduk — ${trackCount} записей${albums}. Дмитрий Гайдук`;
+  return shareDescriptionForCatalogBranded(trackCount, albumCount);
 }
 
 export function albumSharePagePath(folder: string): string {
@@ -201,7 +200,7 @@ export function applyOgMeta(input: OgMetaInput | null) {
   const image = artworkUrlForTrack(input.track);
   const pageUrl = sharePageUrl(input.track.id, origin, input.startAtSec);
 
-  document.title = `${title} — ${SITE_NAME}`;
+  document.title = `${title} — ${siteName()}`;
 
   upsertMeta('meta[name="description"]', {
     name: "description",
@@ -210,7 +209,7 @@ export function applyOgMeta(input: OgMetaInput | null) {
   upsertMeta('link[rel="canonical"]', { rel: "canonical", href: pageUrl }, "link");
 
   const ogPairs: [string, string][] = [
-    ["og:site_name", SITE_NAME],
+    ["og:site_name", siteName()],
     ["og:type", "website"],
     ["og:title", title],
     ["og:description", description],
@@ -247,7 +246,7 @@ export function applyFolderOgMeta(input: OgFolderMetaInput) {
     : defaultCoverPath();
   const pageUrl = albumSharePageUrl(input.folder, origin);
 
-  document.title = `${title} — ${SITE_NAME}`;
+  document.title = `${title} — ${siteName()}`;
   upsertMeta('meta[name="description"]', {
     name: "description",
     content: description,
@@ -255,7 +254,7 @@ export function applyFolderOgMeta(input: OgFolderMetaInput) {
   upsertMeta('link[rel="canonical"]', { rel: "canonical", href: pageUrl }, "link");
 
   const ogPairs: [string, string][] = [
-    ["og:site_name", SITE_NAME],
+    ["og:site_name", siteName()],
     ["og:type", "website"],
     ["og:title", title],
     ["og:description", description],
@@ -294,7 +293,7 @@ export function applyCatalogOgMeta(input: OgCatalogMetaInput) {
     : defaultCoverPath();
   const pageUrl = catalogSharePageUrl(origin);
 
-  document.title = `${title} — ${SITE_NAME}`;
+  document.title = `${title} — ${siteName()}`;
   upsertMeta('meta[name="description"]', {
     name: "description",
     content: description,
@@ -302,7 +301,7 @@ export function applyCatalogOgMeta(input: OgCatalogMetaInput) {
   upsertMeta('link[rel="canonical"]', { rel: "canonical", href: pageUrl }, "link");
 
   const ogPairs: [string, string][] = [
-    ["og:site_name", SITE_NAME],
+    ["og:site_name", siteName()],
     ["og:type", "website"],
     ["og:title", title],
     ["og:description", description],
@@ -335,9 +334,7 @@ export function applySiteOgDefaults() {
   const image = origin
     ? `${origin}${defaultCoverPath()}`
     : defaultCoverPath();
-  const title = SITE_NAME;
-  const description =
-    "Аудиосказки и сказочные записи Дмитрия Гайдука — слушайте в браузере или установите как приложение.";
+  const { siteName: title, siteDescription: description } = resolveBranding();
 
   document.title = title;
   upsertMeta('meta[name="description"]', {
@@ -347,7 +344,7 @@ export function applySiteOgDefaults() {
   upsertMeta('link[rel="canonical"]', { rel: "canonical", href: pageUrl }, "link");
   upsertMeta('meta[property="og:site_name"]', {
     property: "og:site_name",
-    content: SITE_NAME,
+    content: siteName(),
   });
   upsertMeta('meta[property="og:type"]', { property: "og:type", content: "website" });
   upsertMeta('meta[property="og:title"]', { property: "og:title", content: title });

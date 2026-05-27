@@ -19,7 +19,7 @@ export function PlaylistModal({
         <input
           value={playlistName}
           onChange={(e) => onNameChange(e.target.value)}
-          placeholder="Например: Вечерние сказки"
+          placeholder="Например: Избранное"
         />
         <div className="row-actions end">
           <button type="button" className="ghost" onClick={onClose}>

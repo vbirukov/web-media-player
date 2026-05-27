@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import type { AppSkin } from "../themes";
-import { BrandLogo } from "./BrandLogo";
+import { resolveBranding } from "../lib/branding";
+import { getPlayerConfig } from "../playerConfig";
 import { Icon } from "./icons/Icon";
 import { IconButtonIcon } from "./IconButton";
 import { MediaKindFilter as MediaKindFilterBar } from "./MediaKindFilter";
@@ -12,6 +13,74 @@ import {
 import type { MediaKindFilter as MediaKindFilterValue } from "../lib/mediaKind";
 import type { Catalog } from "../types/catalog";
 import type { LibraryView, UserState } from "../types/user";
+
+function SidebarBrandBlock({
+  onClose,
+  skin,
+  onSkinChange,
+}: {
+  onClose: () => void;
+  skin: AppSkin;
+  onSkinChange: (skin: AppSkin) => void;
+}) {
+  const { sidebar } = getPlayerConfig();
+  const brand = sidebar?.brand;
+  const themes = sidebar?.themes;
+
+  const showBrand = brand?.show !== false;
+  const showThemes = themes?.show !== false;
+
+  const title = brand?.title ?? resolveBranding().appTitle;
+  const logoSrc = brand?.logoSrc !== undefined ? brand.logoSrc : undefined;
+  const logoAlt = brand?.logoAlt ?? "";
+
+  const showLogo = logoSrc !== null;
+  const src = logoSrc ?? "/brand/logo.webp";
+
+  return (
+    <>
+      {showThemes ? (
+        <div className="sidebar-theme">
+          {themes?.label ? (
+            <span className="sidebar-theme__label">{themes.label}</span>
+          ) : null}
+          <ThemeSwitcher skin={skin} onSkinChange={onSkinChange} compact />
+        </div>
+      ) : null}
+      {showBrand ? (
+        <div className="brand">
+          {showLogo ? (
+            <img
+              src={src}
+              alt={logoAlt}
+              className="brand-logo logo-box"
+              width={44}
+              height={44}
+            />
+          ) : null}
+          {title ? <h1>{title}</h1> : null}
+          <IconButtonIcon
+            className="sidebar-close"
+            icon="close"
+            iconSize={22}
+            onClick={onClose}
+            aria-label="Закрыть меню"
+          />
+        </div>
+      ) : (
+        <div className="brand brand--minimal">
+          <IconButtonIcon
+            className="sidebar-close"
+            icon="close"
+            iconSize={22}
+            onClick={onClose}
+            aria-label="Закрыть меню"
+          />
+        </div>
+      )}
+    </>
+  );
+}
 
 type Props = {
   skin: AppSkin;
@@ -225,20 +294,7 @@ export function Sidebar({
         onClick={onClose}
       />
       <aside className={navOpen ? "sidebar is-open" : "sidebar"}>
-        <div className="sidebar-theme">
-          <ThemeSwitcher skin={skin} onSkinChange={onSkinChange} compact />
-        </div>
-        <div className="brand">
-          <BrandLogo className="logo-box" />
-          <h1>Haiduk</h1>
-          <IconButtonIcon
-            className="sidebar-close"
-            icon="close"
-            iconSize={22}
-            onClick={onClose}
-            aria-label="Закрыть меню"
-          />
-        </div>
+        <SidebarBrandBlock onClose={onClose} skin={skin} onSkinChange={onSkinChange} />
         <section className="side-section">
           <h2>Разделы</h2>
           <button

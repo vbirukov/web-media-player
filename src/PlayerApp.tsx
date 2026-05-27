@@ -182,7 +182,7 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
         .then(() => pushToast(`«${track.title}» доступна офлайн`))
         .catch((e) => {
           pushToast(
-            e instanceof Error ? e.message : "Не удалось скачать сказку",
+            e instanceof Error ? e.message : "Не удалось скачать материал",
           );
         });
     },
@@ -290,7 +290,7 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
     if (entry.kind === "track") {
       const track = trackMap.get(entry.trackId);
       if (!track) {
-        pushToast("Сказка по ссылке не найдена в каталоге");
+        pushToast("Материал по ссылке не найден в каталоге");
         return;
       }
       applyOgMeta({ track, startAtSec: entry.startAtSec });
