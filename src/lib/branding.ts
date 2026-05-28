@@ -59,30 +59,24 @@ export function resolveBranding(): ResolvedBranding {
   const cfg = getPlayerConfig();
   const b = cfg.branding ?? {};
   const appTitle = (b.appTitle ?? cfg.appName ?? "").trim();
-  const siteName = (b.siteName ?? appTitle || FALLBACK.siteName).trim();
+  const siteName = (b.siteName ?? "").trim() || appTitle || FALLBACK.siteName;
+  const mediaSessionAlbum =
+    (b.mediaSessionAlbum ?? "").trim() || appTitle || siteName || FALLBACK.siteName;
+  const splashAriaLabel =
+    (b.splashAriaLabel ?? "").trim() || appTitle || siteName || FALLBACK.splashAriaLabel;
 
   return {
     appTitle,
     siteName,
     siteDescription: (b.siteDescription ?? FALLBACK.siteDescription).trim(),
     shareAttribution: (b.shareAttribution ?? "").trim(),
-    mediaSessionAlbum: (
-      b.mediaSessionAlbum ??
-      appTitle ||
-      siteName ||
-      FALLBACK.siteName
-    ).trim(),
+    mediaSessionAlbum,
     embedOpenLabel: (
       b.embedOpenLabel ??
       (appTitle ? `Открыть в ${appTitle}` : FALLBACK.embedOpenLabel)
     ).trim(),
     embedNotFound: (b.embedNotFound ?? FALLBACK.embedNotFound).trim(),
-    splashAriaLabel: (
-      b.splashAriaLabel ??
-      appTitle ||
-      siteName ||
-      FALLBACK.splashAriaLabel
-    ).trim(),
+    splashAriaLabel,
     itemLabel: (b.itemLabel ?? FALLBACK.itemLabel).trim(),
     itemLabelGenitivePlural: (
       b.itemLabelGenitivePlural ?? FALLBACK.itemLabelGenitivePlural

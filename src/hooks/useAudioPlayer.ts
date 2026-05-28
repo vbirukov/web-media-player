@@ -596,6 +596,30 @@ export function useAudioPlayer({
     [currentTrackId, persistProgress],
   );
 
+  const stop = useCallback(() => {
+    playGenerationRef.current += 1;
+    cancelPrefetchGate();
+    cancelInflightDownloads();
+    bufferWaitAbortRef.current?.abort();
+    playbackIntentRef.current = false;
+    activePlaybackTrackRef.current = null;
+    const audio = audioRef.current;
+    if (audio) {
+      const assignedTrackId = lastAssignedTrackRef.current;
+      if (assignedTrackId) persistProgressRef.current(audio, assignedTrackId);
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    }
+    lastPlaybackUrlRef.current = "";
+    lastAssignedTrackRef.current = null;
+    setCurrentTrackId(null);
+    setIsPlaying(false);
+    setIsLoadingTrack(false);
+    setIsBuffering(false);
+    setLivePlayback(null);
+  }, [cancelPrefetchGate]);
+
   const playerActionsRef = useRef({
     togglePlay: async () => {},
     nextTrack: (_step: number) => {},
@@ -783,5 +807,6 @@ export function useAudioPlayer({
     nextTrack,
     prevTrack,
     seek,
+    stop,
   };
 }

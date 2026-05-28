@@ -458,7 +458,8 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
           pushToast("Видео отключено в конфиге");
           return;
         }
-        if (player.currentTrackId) void player.togglePlay();
+        player.stop();
+        textReader.close();
         if (videoPlayer.currentTrackId === t.id) {
           void videoPlayer.togglePlay();
           return;
@@ -472,13 +473,14 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
           pushToast("Тексты отключены в конфиге");
           return;
         }
-        if (player.isPlaying) void player.togglePlay();
+        player.stop();
         videoPlayer.stop();
         void textReader.open(t);
         return;
       }
 
       videoPlayer.stop();
+      textReader.close();
       if (player.currentTrackId === t.id) {
         void player.togglePlay();
         return;
