@@ -714,6 +714,7 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
         onNext={() => handleVideoStep(1)}
         onSeekBack={() => videoPlayer.seekBy(-10)}
         onSeekForward={() => videoPlayer.seekBy(10)}
+        onSeekTo={(sec) => videoPlayer.seek(sec)}
         onVolumeChange={(volume) => {
           videoPlayer.setVolume(volume);
           setUser((prev) => ({ ...prev, volume }));

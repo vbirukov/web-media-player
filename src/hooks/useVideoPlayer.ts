@@ -24,6 +24,97 @@ type Options = {
   pushToast: ToastPush;
 };
 
+function replaceExt(url: string, ext: string): string {
+  const parts = url.split(/([?#].*)/, 2);
+  const base = parts[0] ?? url;
+  const suffix = parts[1] ?? "";
+  const nextBase = base.replace(/\.[a-z0-9]{2,5}$/i, ext);
+  return `${nextBase}${suffix}`;
+}
+
+function buildVideoCandidates(primaryUrl: string): string[] {
+  const clean = primaryUrl.trim();
+  if (!clean) return [];
+  const h264 = replaceExt(clean, ".mp4");
+  const tagged = h264.replace(/\.mp4([?#]|$)/i, "_h264.mp4$1");
+  const normalized = clean.replace(/\\/g, "/");
+  const fromMkv =
+    /\.mkv([?#]|$)/i.test(normalized) || /\.avi([?#]|$)/i.test(normalized)
+      ? [h264, tagged]
+      : [tagged, h264];
+  return Array.from(new Set([clean, ...fromMkv])).filter(Boolean);
+}
+
+function guessMimeFromUrl(url: string): string {
+  const clean = url.toLowerCase().split(/[?#]/, 1)[0] ?? "";
+  if (clean.endsWith(".mp4") || clean.endsWith(".m4v")) return "video/mp4";
+  if (clean.endsWith(".webm")) return "video/webm";
+  if (clean.endsWith(".mov")) return "video/quicktime";
+  if (clean.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
+  return "video/mp4";
+}
+
+function canBrowserAttemptVideo(url: string, mimeType?: string): boolean {
+  const probe = document.createElement("video");
+  const mime = (mimeType ?? "").trim() || guessMimeFromUrl(url);
+  if (!mime) return true;
+  const verdict = probe.canPlayType(mime);
+  return verdict === "probably" || verdict === "maybe";
+}
+
+async function ensureVideoFrames(video: HTMLVideoElement, timeoutMs = 2500) {
+  if (video.videoWidth > 0 && video.videoHeight > 0) return;
+
+  await new Promise<void>((resolve, reject) => {
+    let done = false;
+    const startedAt = performance.now();
+
+    const cleanup = () => {
+      if (done) return;
+      done = true;
+      video.removeEventListener("resize", onFrameSignal);
+      video.removeEventListener("loadeddata", onFrameSignal);
+      video.removeEventListener("timeupdate", onTimeUpdate);
+      video.removeEventListener("error", onError);
+    };
+
+    const finishOk = () => {
+      cleanup();
+      resolve();
+    };
+
+    const finishError = () => {
+      cleanup();
+      reject(new Error("video-no-frames"));
+    };
+
+    const onFrameSignal = () => {
+      if (video.videoWidth > 0 && video.videoHeight > 0) finishOk();
+    };
+
+    const onTimeUpdate = () => {
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        finishOk();
+        return;
+      }
+      if (performance.now() - startedAt > timeoutMs && video.currentTime > 0.3) {
+        finishError();
+      }
+    };
+
+    const onError = () => finishError();
+
+    video.addEventListener("resize", onFrameSignal);
+    video.addEventListener("loadeddata", onFrameSignal);
+    video.addEventListener("timeupdate", onTimeUpdate);
+    video.addEventListener("error", onError);
+
+    window.setTimeout(() => {
+      if (!done && video.videoWidth === 0 && video.videoHeight === 0) finishError();
+    }, timeoutMs);
+  });
+}
+
 export function useVideoPlayer({
   patchTrackUrl,
   user,
@@ -66,6 +157,22 @@ export function useVideoPlayer({
     [setUser],
   );
 
+  const resolveResumeSec = useCallback(
+    (trackId: string, duration: number, explicitStart?: number) => {
+      if (Number.isFinite(explicitStart) && (explicitStart ?? 0) > 0) {
+        return explicitStart as number;
+      }
+      const saved = user.progress[trackId];
+      if (!saved || saved.completed) return 0;
+      const savedPos = Number(saved.position ?? 0);
+      if (!Number.isFinite(savedPos) || savedPos <= 0) return 0;
+      const maxDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
+      if (!maxDuration) return Math.max(0, savedPos);
+      return Math.max(0, Math.min(savedPos, Math.max(0, maxDuration - 0.25)));
+    },
+    [user.progress],
+  );
+
   const stop = useCallback(() => {
     playGenerationRef.current += 1;
     const video = videoRef.current;
@@ -90,52 +197,84 @@ export function useVideoPlayer({
       setIsPlaying(false);
 
       try {
-        const url = await resolveTrackMediaUrl(track, patchTrackUrl);
+        const primaryUrl = await resolveTrackMediaUrl(track, patchTrackUrl);
         if (gen !== playGenerationRef.current) return;
 
         const video = videoRef.current;
         if (!video) throw new Error("no video element");
+        const candidates = buildVideoCandidates(primaryUrl);
+        let started = false;
+        let lastError: unknown = null;
 
-        video.src = url;
-        video.playbackRate = user.playbackRate;
-        video.volume = user.volume;
+        for (const candidate of candidates) {
+          if (gen !== playGenerationRef.current) return;
+          if (!canBrowserAttemptVideo(candidate)) continue;
 
-        await new Promise<void>((resolve, reject) => {
-          const onMeta = () => {
-            cleanup();
-            resolve();
-          };
-          const onErr = () => {
-            cleanup();
-            reject(new Error("metadata"));
-          };
-          const cleanup = () => {
-            video.removeEventListener("loadedmetadata", onMeta);
-            video.removeEventListener("error", onErr);
-          };
-          video.addEventListener("loadedmetadata", onMeta);
-          video.addEventListener("error", onErr);
-          video.load();
-        });
+          try {
+            video.src = candidate;
+            video.playbackRate = user.playbackRate;
+            video.volume = user.volume;
 
-        if (opts?.startAtSec && opts.startAtSec > 0) {
-          video.currentTime = opts.startAtSec;
+            await new Promise<void>((resolve, reject) => {
+              const onMeta = () => {
+                cleanup();
+                resolve();
+              };
+              const onErr = () => {
+                cleanup();
+                reject(new Error("metadata"));
+              };
+              const cleanup = () => {
+                video.removeEventListener("loadedmetadata", onMeta);
+                video.removeEventListener("error", onErr);
+              };
+              video.addEventListener("loadedmetadata", onMeta);
+              video.addEventListener("error", onErr);
+              video.load();
+            });
+
+            const resumeAtSec = resolveResumeSec(
+              track.id,
+              video.duration || 0,
+              opts?.startAtSec,
+            );
+            if (resumeAtSec > 0) {
+              video.currentTime = resumeAtSec;
+            }
+
+            playbackIntentRef.current = true;
+            await video.play();
+            await ensureVideoFrames(video);
+            patchTrackUrl(track.id, candidate);
+            started = true;
+            break;
+          } catch (e) {
+            lastError = e;
+            playbackIntentRef.current = false;
+            video.pause();
+            video.removeAttribute("src");
+            video.load();
+          }
         }
 
         if (gen !== playGenerationRef.current) return;
-        playbackIntentRef.current = true;
-        await video.play();
-        if (gen !== playGenerationRef.current) return;
+        if (!started) throw (lastError ?? new Error("video-source-unavailable"));
         setIsPlaying(true);
       } catch (e) {
         if (gen !== playGenerationRef.current) return;
-        pushToast(formatPlaybackError(e));
+        if (e instanceof Error && e.message === "video-no-frames") {
+          pushToast(
+            "Видео-дорожка не декодируется в браузере (чёрный экран при звуке). Перекодируй в MP4 H.264 + AAC.",
+          );
+        } else {
+          pushToast(formatPlaybackError(e));
+        }
         stop();
       } finally {
         if (gen === playGenerationRef.current) setIsLoading(false);
       }
     },
-    [patchTrackUrl, pushToast, stop, user.playbackRate, user.volume],
+    [patchTrackUrl, pushToast, resolveResumeSec, stop, user.playbackRate, user.volume],
   );
 
   const togglePlay = useCallback(async () => {

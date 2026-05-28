@@ -31,7 +31,10 @@ export type IconName =
   | "layout-rows"
   | "leaf"
   | "sun-portal"
-  | "cloud";
+  | "cloud"
+  | "compact"
+  | "center"
+  | "fullscreen";
 
 type Props = SVGAttributes<SVGSVGElement> & {
   name: IconName;
@@ -196,6 +199,23 @@ const paths: Record<IconName, ReactNode> = {
   ),
   cloud: (
     <path d="M7 17h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6-1.4A3.5 3.5 0 0 0 7 17z" />
+  ),
+  compact: (
+    <>
+      <rect x="4" y="5" width="16" height="14" rx="2" />
+      <path d="M4 14h16" />
+    </>
+  ),
+  center: (
+    <>
+      <rect x="5" y="5" width="14" height="14" rx="2" />
+      <path d="M12 8v8M8 12h8" />
+    </>
+  ),
+  fullscreen: (
+    <>
+      <path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4" />
+    </>
   ),
 };
 

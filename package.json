@@ -1,6 +1,6 @@
 {
   "name": "@vbonline/player",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "React audio library player engine (catalog, playback, offline, themes)",
   "type": "module",
   "license": "UNLICENSED",

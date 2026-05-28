@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Track } from "../types/catalog";
 import { IconButton, PlayPauseIcon } from "./IconButton";
 import { Icon } from "./icons/Icon";
+import { fmtTime } from "../lib/format";
 
 type Props = {
   currentTrack: Track | null;
@@ -14,6 +15,7 @@ type Props = {
   onNext: () => void;
   onSeekBack: () => void;
   onSeekForward: () => void;
+  onSeekTo: (sec: number) => void;
   onVolumeChange: (value: number) => void;
   onShare: () => void;
   onClose: () => void;
@@ -32,6 +34,7 @@ export function VideoPlayerBar({
   onNext,
   onSeekBack,
   onSeekForward,
+  onSeekTo,
   onVolumeChange,
   onShare,
   onClose,
@@ -41,6 +44,10 @@ export function VideoPlayerBar({
     if (typeof window === "undefined") return false;
     return window.matchMedia("(max-width: 900px)").matches;
   });
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  const [position, setPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [bufferedRatio, setBufferedRatio] = useState(0);
 
   useEffect(() => {
     document.documentElement.classList.toggle(
@@ -80,6 +87,35 @@ export function VideoPlayerBar({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
+  useEffect(() => {
+    const video = videoEl;
+    if (!video) return;
+    const sync = () => {
+      const d = Number.isFinite(video.duration) ? video.duration : 0;
+      setDuration(d > 0 ? d : 0);
+      setPosition(Math.max(0, video.currentTime || 0));
+      if (d > 0 && video.buffered.length > 0) {
+        const end = video.buffered.end(video.buffered.length - 1) || 0;
+        setBufferedRatio(Math.max(0, Math.min(1, end / d)));
+      } else {
+        setBufferedRatio(0);
+      }
+    };
+    sync();
+    video.addEventListener("timeupdate", sync);
+    video.addEventListener("progress", sync);
+    video.addEventListener("durationchange", sync);
+    video.addEventListener("loadedmetadata", sync);
+    video.addEventListener("seeked", sync);
+    return () => {
+      video.removeEventListener("timeupdate", sync);
+      video.removeEventListener("progress", sync);
+      video.removeEventListener("durationchange", sync);
+      video.removeEventListener("loadedmetadata", sync);
+      video.removeEventListener("seeked", sync);
+    };
+  }, [videoEl, currentTrack?.id]);
+
   if (!currentTrack) return null;
 
   const requestFullscreen = async () => {
@@ -100,16 +136,45 @@ export function VideoPlayerBar({
     >
       <div className="video-player-bar__stage">
         <video
-          ref={bindVideoRef}
+          ref={(el) => {
+            bindVideoRef(el);
+            setVideoEl(el);
+          }}
           className="video-player-bar__video"
           playsInline
           controls={false}
           preload="metadata"
         />
       </div>
+      <div className="video-player-bar__timeline">
+        <span>{fmtTime(position)}</span>
+        <div className="video-player-bar__timeline-track">
+          <input
+            type="range"
+            min={0}
+            max={duration || 0}
+            step={0.1}
+            value={Math.min(position, duration || position)}
+            onChange={(e) => onSeekTo(Number(e.target.value))}
+            aria-label="Позиция видео"
+          />
+          <div className="video-player-bar__timeline-rail" aria-hidden>
+            <div
+              className="video-player-bar__timeline-buffered"
+              style={{ width: `${bufferedRatio * 100}%` }}
+            />
+            <div
+              className="video-player-bar__timeline-played"
+              style={{
+                width: `${duration > 0 ? Math.max(0, Math.min(1, position / duration)) * 100 : 0}%`,
+              }}
+            />
+          </div>
+        </div>
+        <span>{fmtTime(duration)}</span>
+      </div>
       <div className="video-player-bar__meta">
         <div className="video-player-bar__info">
-          <span className="pill pill--kind">Видео</span>
           <h3 className="video-player-bar__title">{currentTrack.title}</h3>
           {!compact ? <p className="video-player-bar__folder">{currentTrack.folder}</p> : null}
           <div className="video-player-bar__volume">
@@ -180,7 +245,7 @@ export function VideoPlayerBar({
             aria-label={compact ? "Обычный режим плеера" : "Компактный режим плеера"}
             title={compact ? "Обычный" : "Компактный"}
           >
-            {compact ? "Full UI" : "Compact"}
+            <Icon name="compact" size={18} />
           </button>
           <button
             type="button"
@@ -198,7 +263,7 @@ export function VideoPlayerBar({
             aria-label="Разместить видео по центру"
             title="По центру"
           >
-            Центр
+            <Icon name="center" size={18} />
           </button>
           <button
             type="button"
@@ -207,7 +272,7 @@ export function VideoPlayerBar({
             aria-label="На весь экран"
             title="Fullscreen"
           >
-            Full
+            <Icon name="fullscreen" size={18} />
           </button>
           <button
             type="button"

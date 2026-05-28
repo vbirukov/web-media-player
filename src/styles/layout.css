@@ -33,18 +33,23 @@
 
 .video-player-bar__stage {
   width: 100%;
-  min-height: 180px;
-  max-height: min(48vh, 520px);
+  height: min(48vh, 520px);
+  min-height: 140px;
   background: #000;
   border-radius: 12px;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .video-player-bar__video {
   display: block;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   height: 100%;
-  min-height: 180px;
+  max-height: 100%;
+  min-height: 0;
   object-fit: contain;
   background: #000;
 }
@@ -55,6 +60,54 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
+}
+
+.video-player-bar__timeline {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.video-player-bar__timeline-track {
+  position: relative;
+}
+
+.video-player-bar__timeline input[type="range"] {
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.video-player-bar__timeline-rail {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--aol-gray, #7a8794) 18%, white);
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.video-player-bar__timeline-buffered {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--aol-gray, #7a8794) 35%, white);
+}
+
+.video-player-bar__timeline-played {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--aol-accent, #2f80ed) 70%, white);
 }
 
 .video-player-bar__info {
@@ -122,17 +175,21 @@
 }
 
 .video-player-bar.is-compact .video-player-bar__stage {
+  height: 180px;
   min-height: 112px;
-  max-height: 180px;
 }
 
 .video-player-bar.is-compact .video-player-bar__video {
-  min-height: 112px;
+  min-height: 0;
 }
 
 .video-player-bar.is-compact .video-player-bar__meta {
   align-items: center;
   gap: 10px;
+}
+
+.video-player-bar.is-compact .video-player-bar__timeline {
+  margin-top: -2px;
 }
 
 .video-player-bar.is-compact .video-player-bar__volume {
@@ -164,8 +221,7 @@ html.video-player-mode-large .video-player-bar {
 
 html.video-player-mode-large .video-player-bar__stage,
 html.video-player-mode-large .video-player-bar__video {
-  min-height: 280px;
-  max-height: min(64vh, 760px);
+  height: min(64vh, 760px);
 }
 
 html.video-player-mode-center .video-player-bar {
@@ -204,8 +260,7 @@ html.video-player-mode-center .video-player-bar {
 
   .video-player-bar__stage,
   .video-player-bar__video {
-    min-height: 200px;
-    max-height: min(42vh, 360px);
+    height: min(42vh, 360px);
   }
 
   .video-player-bar__meta {
