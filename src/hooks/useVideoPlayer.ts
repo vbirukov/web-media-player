@@ -8,6 +8,10 @@ import {
 } from "react";
 import { formatPlaybackError } from "../lib/playbackErrors";
 import { resolveTrackMediaUrl } from "../lib/resolveMediaUrl";
+import {
+  configureBackgroundVideoElement,
+  useBackgroundPlayback,
+} from "./useBackgroundPlayback";
 import type { Track } from "../types/catalog";
 import type { UserState } from "../types/user";
 
@@ -33,11 +37,15 @@ export function useVideoPlayer({
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playGenerationRef = useRef(0);
+  const playbackIntentRef = useRef(false);
 
   const bindVideoRef = useCallback((el: HTMLVideoElement | null) => {
     videoRef.current = el;
     setVideoEl(el);
+    if (el) configureBackgroundVideoElement(el);
   }, []);
+
+  useBackgroundPlayback(videoEl, playbackIntentRef);
 
   const persistProgress = useCallback(
     (trackId: string, position: number, duration: number) => {
@@ -62,6 +70,7 @@ export function useVideoPlayer({
     playGenerationRef.current += 1;
     const video = videoRef.current;
     if (video) {
+      playbackIntentRef.current = false;
       video.pause();
       video.removeAttribute("src");
       video.load();
@@ -114,6 +123,7 @@ export function useVideoPlayer({
         }
 
         if (gen !== playGenerationRef.current) return;
+        playbackIntentRef.current = true;
         await video.play();
         if (gen !== playGenerationRef.current) return;
         setIsPlaying(true);
@@ -133,12 +143,15 @@ export function useVideoPlayer({
     if (!video || !currentTrack) return;
     if (video.paused) {
       try {
+        playbackIntentRef.current = true;
         await video.play();
         setIsPlaying(true);
       } catch (e) {
+        playbackIntentRef.current = false;
         pushToast(formatPlaybackError(e));
       }
     } else {
+      playbackIntentRef.current = false;
       video.pause();
       setIsPlaying(false);
     }
@@ -146,8 +159,23 @@ export function useVideoPlayer({
 
   const seek = useCallback((sec: number) => {
     const video = videoRef.current;
+    if (!video || !Number.isFinite(video.duration)) return;
+    video.currentTime = Math.max(0, Math.min(video.duration, sec));
+  }, []);
+
+  const seekBy = useCallback((deltaSec: number) => {
+    const video = videoRef.current;
+    if (!video || !Number.isFinite(video.duration)) return;
+    video.currentTime = Math.max(
+      0,
+      Math.min(video.duration, (video.currentTime || 0) + deltaSec),
+    );
+  }, []);
+
+  const setVolume = useCallback((value: number) => {
+    const video = videoRef.current;
     if (!video) return;
-    video.currentTime = sec;
+    video.volume = Math.max(0, Math.min(1, value));
   }, []);
 
   useEffect(() => {
@@ -155,7 +183,10 @@ export function useVideoPlayer({
     if (!video || !currentTrackId) return;
 
     const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
+    const onPause = () => {
+      setIsPlaying(false);
+      if (!video.ended) playbackIntentRef.current = false;
+    };
     const onTimeUpdate = () => {
       if (!video.duration || !Number.isFinite(video.duration)) return;
       persistProgress(currentTrackId, video.currentTime, video.duration);
@@ -187,6 +218,8 @@ export function useVideoPlayer({
     playTrack,
     togglePlay,
     seek,
+    seekBy,
+    setVolume,
     stop,
   };
 }

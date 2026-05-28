@@ -46,6 +46,7 @@ import { FolderOfflineControl } from "./components/FolderOfflineControl";
 import { SelectionOfflineControl } from "./components/SelectionOfflineControl";
 import { formatStorageBytes } from "./lib/formatStorage";
 import { getPlayerConfig } from "./playerConfig";
+import { shareTrack } from "./lib/shareTrack";
 
 export type { PlayerHeaderSlotProps, PlayerHeroSlotProps } from "./types/slots";
 
@@ -123,6 +124,14 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
   const audioTrackIds = useMemo(
     () => audioTracks.map((t) => t.id),
     [audioTracks],
+  );
+  const videoTracks = useMemo(
+    () => tracks.filter((t) => trackKind(t) === "video"),
+    [tracks],
+  );
+  const videoTrackIds = useMemo(
+    () => videoTracks.map((t) => t.id),
+    [videoTracks],
   );
 
   const entryLinkHandled = useRef(false);
@@ -503,6 +512,36 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
     [toggleLike, isLiked],
   );
 
+  const handleVideoStep = useCallback(
+    (step: number) => {
+      if (!videoPlayer.currentTrackId) return;
+      const source = videoTrackIds.length
+        ? videoTrackIds
+        : catalog.tracks.filter((t) => trackKind(t) === "video").map((t) => t.id);
+      const idx = source.indexOf(videoPlayer.currentTrackId);
+      if (idx < 0) return;
+      const nextId = source[idx + step];
+      if (!nextId) return;
+      const nextTrack = trackMap.get(nextId);
+      if (!nextTrack) return;
+      void videoPlayer.playTrack(nextTrack);
+    },
+    [catalog.tracks, trackMap, videoPlayer, videoTrackIds],
+  );
+
+  const handleVideoShare = useCallback(() => {
+    const track = videoPlayer.currentTrack;
+    if (!track) return;
+    const pos = videoPlayer.videoRef.current?.currentTime;
+    void shareTrack({
+      track,
+      positionSec: Number.isFinite(pos) ? pos : undefined,
+    }).then((r) => {
+      if (r === "copied") pushToast("Ссылка скопирована");
+      if (r === "shared") ymGoal("track_share", { track_id: track.id });
+    });
+  }, [pushToast, videoPlayer]);
+
   const showIosInstallHint =
     !iosHintDismissed &&
     typeof navigator !== "undefined" &&
@@ -669,7 +708,17 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
         bindVideoRef={videoPlayer.bindVideoRef}
         isPlaying={videoPlayer.isPlaying}
         isLoading={videoPlayer.isLoading}
+        volume={user.volume}
         onTogglePlay={() => void videoPlayer.togglePlay()}
+        onPrev={() => handleVideoStep(-1)}
+        onNext={() => handleVideoStep(1)}
+        onSeekBack={() => videoPlayer.seekBy(-10)}
+        onSeekForward={() => videoPlayer.seekBy(10)}
+        onVolumeChange={(volume) => {
+          videoPlayer.setVolume(volume);
+          setUser((prev) => ({ ...prev, volume }));
+        }}
+        onShare={handleVideoShare}
         onClose={() => videoPlayer.stop()}
       />
       <TextViewer

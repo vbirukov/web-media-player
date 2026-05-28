@@ -80,6 +80,75 @@
 
 .video-player-bar__actions {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.video-player-bar__volume {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.video-player-bar__volume span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.video-player-bar__volume input[type="range"] {
+  width: min(240px, 50vw);
+}
+
+.video-player-bar__mode-btn {
+  min-width: 46px;
+  padding-inline: 10px;
+  font-weight: 700;
+}
+
+.video-player-bar__seek {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+html.video-player-mode-large .video-player-bar {
+  grid-template-columns: minmax(360px, 56vw) 1fr;
+}
+
+html.video-player-mode-large .video-player-bar__stage,
+html.video-player-mode-large .video-player-bar__video {
+  min-height: 220px;
+}
+
+html.video-player-mode-center .video-player-bar {
+  left: 50%;
+  right: auto;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: min(1100px, calc(100vw - 24px));
+  border: 1px solid color-mix(in srgb, var(--aol-gray, #7a8794) 35%, white);
+  border-radius: 14px;
+}
+
+.video-player-bar:fullscreen {
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  border: none;
+  border-radius: 0;
+  padding: 10px;
+  background: #000;
+}
+
+.video-player-bar:fullscreen .video-player-bar__stage {
+  min-height: calc(100vh - 130px);
+}
+
+.video-player-bar:fullscreen .video-player-bar__meta {
+  color: #fff;
 }
 
 @media (max-width: 900px) {
@@ -92,5 +161,28 @@
   .video-player-bar__stage,
   .video-player-bar__video {
     min-height: 180px;
+  }
+}
+
+html.has-video-player .app-shell {
+  padding-bottom: 178px;
+}
+
+html.video-player-mode-large.has-video-player .app-shell {
+  padding-bottom: 272px;
+}
+
+html.video-player-mode-center.has-video-player .app-shell {
+  padding-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  html.has-video-player .app-shell {
+    padding-bottom: 276px;
+  }
+
+  html.video-player-mode-large.has-video-player .app-shell,
+  html.video-player-mode-center.has-video-player .app-shell {
+    padding-bottom: 276px;
   }
 }

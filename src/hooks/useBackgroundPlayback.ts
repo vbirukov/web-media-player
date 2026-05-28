@@ -8,18 +8,18 @@ function syncMediaSessionPlaying() {
 
 /** Держит воспроизведение при блокировке экрана / уходе вкладки в фон. */
 export function useBackgroundPlayback(
-  audio: HTMLAudioElement | null,
+  media: HTMLMediaElement | null,
   playbackIntentRef: RefObject<boolean>,
 ) {
   useEffect(() => {
-    if (!audio) return;
+    if (!media) return;
 
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
     const tryResume = () => {
-      if (!playbackIntentRef.current || !audio.paused || audio.ended) return;
+      if (!playbackIntentRef.current || !media.paused || media.ended) return;
       syncMediaSessionPlaying();
-      void audio.play().catch(() => {});
+      void media.play().catch(() => {});
     };
 
     const scheduleRetries = () => {
@@ -43,15 +43,15 @@ export function useBackgroundPlayback(
 
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pagehide", onPageHide);
-    audio.addEventListener("pause", onPause);
+    media.addEventListener("pause", onPause);
 
     return () => {
       clearTimeout(retryTimer);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pagehide", onPageHide);
-      audio.removeEventListener("pause", onPause);
+      media.removeEventListener("pause", onPause);
     };
-  }, [audio, playbackIntentRef]);
+  }, [media, playbackIntentRef]);
 }
 
 export function configureBackgroundAudioElement(audio: HTMLAudioElement) {
@@ -59,4 +59,11 @@ export function configureBackgroundAudioElement(audio: HTMLAudioElement) {
   audio.setAttribute("webkit-playsinline", "");
   audio.setAttribute("x-webkit-airplay", "allow");
   audio.setAttribute("referrerpolicy", "no-referrer");
+}
+
+export function configureBackgroundVideoElement(video: HTMLVideoElement) {
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "");
+  video.setAttribute("x-webkit-airplay", "allow");
+  video.setAttribute("referrerpolicy", "no-referrer");
 }
