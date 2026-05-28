@@ -37,6 +37,10 @@ export function VideoPlayerBar({
   onClose,
 }: Props) {
   const [mode, setMode] = useState<VideoPanelMode>("dock");
+  const [compact, setCompact] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(max-width: 900px)").matches;
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle(
@@ -69,6 +73,13 @@ export function VideoPlayerBar({
     if (!currentTrack) setMode("dock");
   }, [currentTrack]);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 900px)");
+    const sync = () => setCompact(mq.matches);
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
   if (!currentTrack) return null;
 
   const requestFullscreen = async () => {
@@ -83,7 +94,7 @@ export function VideoPlayerBar({
 
   return (
     <div
-      className={`video-player-bar video-player-bar--${mode}`}
+      className={`video-player-bar video-player-bar--${mode}${compact ? " is-compact" : ""}`}
       role="region"
       aria-label="Видеоплеер"
     >
@@ -100,7 +111,7 @@ export function VideoPlayerBar({
         <div className="video-player-bar__info">
           <span className="pill pill--kind">Видео</span>
           <h3 className="video-player-bar__title">{currentTrack.title}</h3>
-          <p className="video-player-bar__folder">{currentTrack.folder}</p>
+          {!compact ? <p className="video-player-bar__folder">{currentTrack.folder}</p> : null}
           <div className="video-player-bar__volume">
             <span>Громкость</span>
             <input
@@ -165,6 +176,15 @@ export function VideoPlayerBar({
           <button
             type="button"
             className="ghost round video-player-bar__mode-btn"
+            onClick={() => setCompact((prev) => !prev)}
+            aria-label={compact ? "Обычный режим плеера" : "Компактный режим плеера"}
+            title={compact ? "Обычный" : "Компактный"}
+          >
+            {compact ? "Full UI" : "Compact"}
+          </button>
+          <button
+            type="button"
+            className="ghost round video-player-bar__mode-btn video-player-bar__advanced"
             onClick={() => setMode((prev) => (prev === "large" ? "dock" : "large"))}
             aria-label="Увеличить окно видео"
             title={mode === "large" ? "Обычный размер" : "Увеличить"}
@@ -173,7 +193,7 @@ export function VideoPlayerBar({
           </button>
           <button
             type="button"
-            className="ghost round video-player-bar__mode-btn"
+            className="ghost round video-player-bar__mode-btn video-player-bar__advanced"
             onClick={() => setMode((prev) => (prev === "center" ? "dock" : "center"))}
             aria-label="Разместить видео по центру"
             title="По центру"
@@ -182,7 +202,7 @@ export function VideoPlayerBar({
           </button>
           <button
             type="button"
-            className="ghost round video-player-bar__mode-btn"
+            className="ghost round video-player-bar__mode-btn video-player-bar__advanced"
             onClick={() => void requestFullscreen()}
             aria-label="На весь экран"
             title="Fullscreen"
