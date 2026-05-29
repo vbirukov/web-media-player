@@ -1,4 +1,5 @@
 import {
+  albumSharePagePath,
   albumSharePageUrl,
   catalogSharePageUrl,
   resolveSiteOrigin,
@@ -6,13 +7,21 @@ import {
   shareDescriptionForFolder,
   shareTitleForCatalog,
   shareTitleForFolder,
+  utf8ShareSlug,
 } from "./shareOg";
 import { shareViaWebOrClipboard, type ShareLinkResult } from "./shareLink";
 
 export type { ShareLinkResult };
 
-export function buildFolderShareUrl(folder: string): string {
-  return albumSharePageUrl(folder, resolveSiteOrigin());
+export function buildFolderShareUrl(folder: string, sectionId?: string): string {
+  if (!sectionId?.trim()) {
+    return albumSharePageUrl(folder, resolveSiteOrigin());
+  }
+  const origin = resolveSiteOrigin();
+  const base = (origin || "http://localhost").replace(/\/$/, "");
+  const url = new URL(albumSharePagePath(folder), `${base}/`);
+  url.searchParams.set("section", utf8ShareSlug(sectionId.trim()));
+  return url.href;
 }
 
 export function buildCatalogShareUrl(): string {
@@ -22,8 +31,9 @@ export function buildCatalogShareUrl(): string {
 export async function shareFolder(opts: {
   folder: string;
   trackCount: number;
+  sectionId?: string;
 }): Promise<ShareLinkResult> {
-  const url = buildFolderShareUrl(opts.folder);
+  const url = buildFolderShareUrl(opts.folder, opts.sectionId);
   const title = shareTitleForFolder(opts.folder);
   const text = shareDescriptionForFolder(opts.folder, opts.trackCount);
   return shareViaWebOrClipboard({

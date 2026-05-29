@@ -10,8 +10,10 @@ import {
   buildCatalogSections,
   type CatalogSectionNav,
 } from "../lib/catalogSections";
+import { isHierarchicalNavigation } from "../lib/feedNavigation";
 import type { MediaKindFilter as MediaKindFilterValue } from "../lib/mediaKind";
 import type { Catalog } from "../types/catalog";
+import type { FeedScope } from "../types/navigation";
 import type { LibraryView, UserState } from "../types/user";
 
 function SidebarBrandBlock({
@@ -93,14 +95,18 @@ type Props = {
   mediaKindFilter: MediaKindFilterValue;
   onMediaKindFilterChange: (filter: MediaKindFilterValue) => void;
   feedFolderFilter: string[];
+  feedScope: FeedScope;
   focusedFolder: string | null;
   focusedSection: string | null;
   selectedPlaylist: string | null;
   resumeCount: number;
   onSelectView: (view: LibraryView) => void;
+  onNavigateCatalog: () => void;
+  onNavigateSection: (sectionId: string) => void;
+  onNavigateFolder: (sectionId: string, folder: string) => void;
   onScrollToFolder: (folder: string, section?: string) => void;
   onFocusSection: (section: string | null) => void;
-  onAddFolderToSelection: (folder: string) => void;
+  onAddFolderToSelection: (folder: string, sectionId?: string) => void;
   onSelectPlaylist: (playlistId: string) => void;
   onOpenPlaylistModal: () => void;
   onDeletePlaylist: (playlistId: string) => void;
@@ -115,9 +121,12 @@ function SectionBlock({
   onToggle,
   focusedSection,
   focusedFolder,
-  feedFolderFilter,
+  feedScope,
   selectionActive,
   selectionSet,
+  hierarchicalNav,
+  onNavigateSection,
+  onNavigateFolder,
   onScrollToFolder,
   onFocusSection,
   onAddFolderToSelection,
@@ -129,12 +138,15 @@ function SectionBlock({
   onToggle: () => void;
   focusedSection: string | null;
   focusedFolder: string | null;
-  feedFolderFilter: string[];
+  feedScope: FeedScope;
   selectionActive: boolean;
   selectionSet: Set<string>;
+  hierarchicalNav: boolean;
+  onNavigateSection: (sectionId: string) => void;
+  onNavigateFolder: (sectionId: string, folder: string) => void;
   onScrollToFolder: (folder: string, section?: string) => void;
   onFocusSection: (section: string | null) => void;
-  onAddFolderToSelection: (folder: string) => void;
+  onAddFolderToSelection: (folder: string, sectionId?: string) => void;
   onShareFolder: (folder: string) => void;
   renderFolderOffline?: (folder: string) => ReactNode;
 }) {
@@ -152,6 +164,10 @@ function SectionBlock({
         type="button"
         className="nav-section-block__head"
         onClick={() => {
+          if (hierarchicalNav) {
+            onNavigateSection(section.id);
+            return;
+          }
           onToggle();
           onFocusSection(section.id);
         }}
@@ -190,7 +206,21 @@ function SectionBlock({
                 <button
                   type="button"
                   className="nav-folder-card__open"
-                  onClick={() => onScrollToFolder(folder.name, section.id)}
+                  onClick={() => {
+                    if (hierarchicalNav) {
+                      const atFolder =
+                        feedScope.level === "folder" &&
+                        feedScope.sectionId === section.id &&
+                        feedScope.folder === folder.name;
+                      if (atFolder) {
+                        onScrollToFolder(folder.name, section.id);
+                      } else {
+                        onNavigateFolder(section.id, folder.name);
+                      }
+                      return;
+                    }
+                    onScrollToFolder(folder.name, section.id);
+                  }}
                 >
                   <span className="nav-item__label">{folder.name}</span>
                   <span className="nav-sublabel">
@@ -202,7 +232,7 @@ function SectionBlock({
                   <button
                     type="button"
                     className="nav-item__share nav-item__share--stacked nav-item__add-selection"
-                    onClick={() => onAddFolderToSelection(folder.name)}
+                    onClick={() => onAddFolderToSelection(folder.name, section.id)}
                   >
                     <Icon name="list-plus" size={15} aria-hidden />
                     <span>В выборку</span>
@@ -238,11 +268,15 @@ export function Sidebar({
   mediaKindFilter,
   onMediaKindFilterChange,
   feedFolderFilter,
+  feedScope,
   focusedFolder,
   focusedSection,
   selectedPlaylist,
   resumeCount,
   onSelectView,
+  onNavigateCatalog,
+  onNavigateSection,
+  onNavigateFolder,
   onScrollToFolder,
   onFocusSection,
   onAddFolderToSelection,
@@ -253,6 +287,7 @@ export function Sidebar({
   renderFolderOffline,
   offlineSummary,
 }: Props) {
+  const hierarchicalNav = isHierarchicalNavigation();
   const likeCount = Object.keys(user.likes).length;
   const extraViews = [
     resumeCount > 0 ? (["resume", `Продолжить · ${resumeCount}`] as const) : null,
@@ -300,7 +335,10 @@ export function Sidebar({
           <button
             type="button"
             className={view === "all" ? "nav active" : "nav"}
-            onClick={() => onSelectView("all")}
+            onClick={() => {
+              onSelectView("all");
+              if (hierarchicalNav) onNavigateCatalog();
+            }}
           >
             Весь каталог{" "}
             <span className="nav-sublabel">({catalog.tracks.length})</span>
@@ -340,9 +378,12 @@ export function Sidebar({
                 onToggle={() => toggleSection(section.id)}
                 focusedSection={focusedSection}
                 focusedFolder={focusedFolder}
-                feedFolderFilter={feedFolderFilter}
+                feedScope={feedScope}
                 selectionActive={selectionActive}
                 selectionSet={selectionSet}
+                hierarchicalNav={hierarchicalNav}
+                onNavigateSection={onNavigateSection}
+                onNavigateFolder={onNavigateFolder}
                 onScrollToFolder={onScrollToFolder}
                 onFocusSection={onFocusSection}
                 onAddFolderToSelection={onAddFolderToSelection}

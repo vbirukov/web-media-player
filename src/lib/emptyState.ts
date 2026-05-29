@@ -1,10 +1,13 @@
 import { resolveBranding } from "./branding";
 import { feedListenFilterLabel } from "./listenStatus";
+import type { FeedMode } from "../types/navigation";
 import type { FeedListenFilter, LibraryView } from "../types/user";
 
 type Args = {
   view: LibraryView;
   feedFolderFilter: string[];
+  feedMode?: FeedMode;
+  sectionTitle?: string;
   selectedPlaylist: string | null;
   playlistName: string;
   feedListenFilter: FeedListenFilter;
@@ -13,10 +16,24 @@ type Args = {
 export function emptyStateCopy({
   view,
   feedFolderFilter,
+  feedMode,
+  sectionTitle,
   selectedPlaylist,
   playlistName,
   feedListenFilter,
 }: Args): { title: string; hint: string } {
+  if (feedMode === "sections") {
+    return {
+      title: "Разделы пусты",
+      hint: "В каталоге нет материалов с текущим фильтром типа контента.",
+    };
+  }
+  if (feedMode === "folders") {
+    return {
+      title: sectionTitle ? `В «${sectionTitle}» пусто` : "Папок нет",
+      hint: "В этом разделе нет папок или они не попали в индекс.",
+    };
+  }
   const { itemLabelGenitivePlural } = resolveBranding();
   if (
     feedListenFilter !== "all" &&

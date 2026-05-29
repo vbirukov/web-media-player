@@ -23,6 +23,12 @@
   -webkit-overflow-scrolling: touch;
 }
 
+@media (min-width: 901px) {
+  .menu-toggle {
+    display: none;
+  }
+}
+
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: minmax(0, 1fr);
@@ -438,4 +444,128 @@ html.video-player-mode-center.has-video-player .app-shell {
   html.video-player-mode-center.has-video-player .app-shell {
     padding-bottom: 0;
   }
+}
+
+.feed-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.feed-breadcrumbs__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.feed-breadcrumbs__trail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.feed-breadcrumbs__trail li:not(:last-child)::after {
+  content: "›";
+  margin-left: 6px;
+  opacity: 0.45;
+}
+
+.feed-breadcrumbs__segment {
+  color: inherit;
+  opacity: 0.72;
+}
+
+.feed-breadcrumbs__current {
+  font-weight: 600;
+}
+
+.cards--folders {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+}
+
+.folder-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--aol-gray, #7a8794) 22%, white);
+  background: var(--aol-white, #fff);
+}
+
+.folder-card__open {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.folder-card__title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.folder-card__meta {
+  margin: 0;
+}
+
+.folder-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.folder-card__share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.catalog-sections-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.catalog-section-block__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.catalog-section-block__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.catalog-section-block__count {
+  flex: 1;
+  min-width: 0;
+}
+
+.catalog-section-block__open {
+  font-weight: 600;
+}
+
+.cards--nested {
+  margin-top: 4px;
 }
