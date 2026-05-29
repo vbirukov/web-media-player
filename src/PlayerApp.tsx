@@ -7,7 +7,15 @@ import {
 } from "react";
 import { useAppTheme } from "./hooks/useAppTheme";
 import type { Track } from "./types/catalog";
+import type { FeedScope, FolderRef } from "./types/navigation";
 import type { PlayerAppSlots } from "./types/slots";
+import { FeedNavigationProvider } from "./context/FeedNavigationContext";
+import {
+  folderRefFromTrack,
+  isHierarchicalNavigation,
+  resolveSectionForFolderName,
+  syncFeedScopeToLocation,
+} from "./lib/feedNavigation";
 import { PlaylistModal } from "./components/PlaylistModal";
 import { PlayerBar } from "./components/PlayerBar";
 import { Sidebar } from "./components/Sidebar";
@@ -48,9 +56,20 @@ import { formatStorageBytes } from "./lib/formatStorage";
 import { getPlayerConfig } from "./playerConfig";
 import { shareTrack } from "./lib/shareTrack";
 
-export type { PlayerHeaderSlotProps, PlayerHeroSlotProps } from "./types/slots";
+export type {
+  PlayerHeaderSlotProps,
+  PlayerHeroSlotProps,
+  PlayerFeedToolbarSlotProps,
+} from "./types/slots";
+export type { FeedScope, FolderRef, BreadcrumbItem } from "./types/navigation";
+export { folderRefFromTrack } from "./lib/feedNavigation";
+export { usePlayerNavigation } from "./context/FeedNavigationContext";
 
-export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
+export function PlayerApp({
+  renderHeader,
+  renderHero,
+  renderFeedToolbar,
+}: PlayerAppSlots) {
   const { features } = getPlayerConfig();
   const { toasts, push: pushToast, dismiss: dismissToast } = useToasts();
   const {
@@ -67,7 +86,7 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
 
   const [view, setView] = useState<LibraryView>("all");
   const [mediaKindFilter, setMediaKindFilter] = useState<MediaKindFilter>("all");
-  const [feedFolderFilter, setFeedFolderFilter] = useState<string[]>([]);
+  const [feedScope, setFeedScope] = useState<FeedScope>({ level: "catalog" });
   const [scrollToFolder, setScrollToFolder] = useState<string | null>(null);
   const [focusedFolder, setFocusedFolder] = useState<string | null>(null);
   const [focusedSection, setFocusedSection] = useState<string | null>(null);
@@ -100,14 +119,41 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
     resumeCount,
     sectionTitle,
     sectionSub,
+    feedMode,
+    folderEntries,
+    sectionEntries,
+    breadcrumbs,
+    feedFolderFilter,
   } = useCatalog(user, {
     view,
-    feedFolderFilter,
+    feedScope,
     selectedPlaylist,
     feedListenFilter: user.feedListenFilter,
     mediaKindFilter,
     leadTrackIdRef,
   });
+
+  const hierarchicalNav = isHierarchicalNavigation();
+
+  const navigateFeed = useCallback(
+    (scope: FeedScope) => {
+      setView("all");
+      setSelectedPlaylist(null);
+      setFeedScope(scope);
+      if (view === "all") syncFeedScopeToLocation(scope, "all");
+      if (scope.level === "folder") {
+        setFocusedFolder(scope.folder);
+        setFocusedSection(scope.sectionId);
+      } else if (scope.level === "section") {
+        setFocusedSection(scope.sectionId);
+        setFocusedFolder(null);
+      } else {
+        setFocusedSection(null);
+        setFocusedFolder(null);
+      }
+    },
+    [view],
+  );
 
   const audioTrackMap = useMemo(() => {
     const m = new Map<string, Track>();
@@ -271,10 +317,11 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
         view,
         feedFolderFilter.length === 1 ? feedFolderFilter[0]! : null,
         selectedPlaylist,
+        feedScope,
       ),
       sectionTitle,
     );
-  }, [view, feedFolderFilter, selectedPlaylist, sectionTitle]);
+  }, [view, feedFolderFilter, feedScope, selectedPlaylist, sectionTitle]);
 
   useEffect(() => {
     if (navOpen) ymGoal("nav_open");
@@ -291,7 +338,7 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
 
   useEffect(() => {
     if (catalogLoading || entryLinkHandled.current) return;
-    const entry = parseAppEntryParams();
+    const entry = parseAppEntryParams(catalog);
     if (entry.kind === "none") return;
     entryLinkHandled.current = true;
     clearAppEntryParams();
@@ -307,25 +354,41 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
       return;
     }
 
+    if (entry.kind === "section") {
+      setView("all");
+      setSelectedPlaylist(null);
+      navigateFeed({ level: "section", sectionId: entry.sectionId });
+      return;
+    }
+
     if (entry.kind === "folder") {
-      if (!catalog.folders.includes(entry.folder)) {
+      const hasFolder = catalog.tracks.some(
+        (t) =>
+          t.folder === entry.folder &&
+          (!entry.sectionId || folderRefFromTrack(t).sectionId === entry.sectionId),
+      );
+      if (!hasFolder) {
         pushToast("Альбом по ссылке не найден");
         return;
       }
       setView("all");
-      setFeedFolderFilter([entry.folder]);
-      setFocusedFolder(entry.folder);
-      setScrollToFolder(entry.folder);
       setSelectedPlaylist(null);
+      navigateFeed({
+        level: "folder",
+        sectionId: entry.sectionId,
+        folder: entry.folder,
+      });
       const trackCount = catalog.tracks.filter(
-        (t) => t.folder === entry.folder,
+        (t) =>
+          t.folder === entry.folder &&
+          folderRefFromTrack(t).sectionId === entry.sectionId,
       ).length;
       applyFolderOgMeta({ folder: entry.folder, trackCount });
       return;
     }
 
     setView("all");
-    setFeedFolderFilter([]);
+    navigateFeed({ level: "catalog" });
     setSelectedPlaylist(null);
     applyCatalogOgMeta({
       trackCount: catalog.tracks.length,
@@ -336,6 +399,7 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
     catalog.folders,
     catalog.tracks,
     trackMap,
+    navigateFeed,
     player.playTrack,
     pushToast,
   ]);
@@ -369,41 +433,87 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
 
   const closeNav = () => setNavOpen(false);
 
+  const folderRef = useCallback(
+    (folder: string, sectionId?: string): FolderRef => ({
+      sectionId:
+        sectionId ??
+        resolveSectionForFolderName(catalog, folder) ??
+        "Каталог",
+      folder,
+    }),
+    [catalog],
+  );
+
   const handleScrollToFolder = useCallback(
     (folder: string, section?: string) => {
       setView("all");
       setSelectedPlaylist(null);
       setFocusedFolder(folder);
       setFocusedSection(section ?? null);
-      setScrollToFolder(folder);
+      if (hierarchicalNav) {
+        navigateFeed({
+          level: "folder",
+          sectionId: section ?? folderRef(folder).sectionId,
+          folder,
+        });
+      } else {
+        setFeedScope({
+          level: "selection",
+          folders: [folderRef(folder, section)],
+        });
+        setScrollToFolder(folder);
+      }
       closeNav();
     },
-    [],
+    [folderRef, hierarchicalNav, navigateFeed],
   );
 
-  const handleFilterOnlyFolder = useCallback((folder: string) => {
-    setView("all");
-    setSelectedPlaylist(null);
-    setFeedFolderFilter([folder]);
-    setFocusedFolder(folder);
-    ymGoal("feed_filter_folder", { folder });
-  }, []);
+  const handleFilterOnlyFolder = useCallback(
+    (folder: string, sectionId?: string) => {
+      navigateFeed({
+        level: "folder",
+        sectionId: sectionId ?? folderRef(folder).sectionId,
+        folder,
+      });
+      ymGoal("feed_filter_folder", { folder });
+    },
+    [folderRef, navigateFeed],
+  );
 
-  const handleAddFolderToSelection = useCallback((folder: string) => {
-    setView("all");
-    setSelectedPlaylist(null);
-    setFeedFolderFilter((prev) =>
-      prev.includes(folder) ? prev : [...prev, folder],
-    );
-    setFocusedFolder(folder);
-    setScrollToFolder(folder);
-    ymGoal("feed_filter_add_folder", { folder });
-  }, []);
+  const handleAddFolderToSelection = useCallback(
+    (folder: string, sectionId?: string) => {
+      const ref = folderRef(folder, sectionId);
+      setFeedScope((prev) => {
+        const existing =
+          prev.level === "selection"
+            ? prev.folders
+            : prev.level === "folder"
+              ? [
+                  {
+                    sectionId: prev.sectionId,
+                    folder: prev.folder,
+                    folderPath: prev.folderPath,
+                  },
+                ]
+              : [];
+        if (existing.some((f) => f.sectionId === ref.sectionId && f.folder === ref.folder)) {
+          return prev;
+        }
+        return { level: "selection", folders: [...existing, ref] };
+      });
+      setView("all");
+      setSelectedPlaylist(null);
+      setFocusedFolder(folder);
+      setFocusedSection(ref.sectionId);
+      ymGoal("feed_filter_add_folder", { folder });
+    },
+    [folderRef],
+  );
 
   const handleClearFeedFilter = useCallback(() => {
-    setFeedFolderFilter([]);
+    navigateFeed({ level: "catalog" });
     ymGoal("feed_filter_clear");
-  }, []);
+  }, [navigateFeed]);
 
   const handleScrolledToFolder = useCallback(() => {
     setScrollToFolder(null);
@@ -447,14 +557,17 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
   ]);
 
   const handleShareFolder = useCallback(
-    (folder: string) => {
-      const trackCount = catalog.tracks.filter((t) => t.folder === folder).length;
-      void shareFolder({ folder, trackCount }).then((r) => {
+    (folder: string, sectionId?: string) => {
+      const sid = sectionId ?? folderRef(folder).sectionId;
+      const trackCount = catalog.tracks.filter(
+        (t) => t.folder === folder && folderRefFromTrack(t).sectionId === sid,
+      ).length;
+      void shareFolder({ folder, trackCount, sectionId: sid }).then((r) => {
         if (r === "copied") pushToast("Ссылка на альбом скопирована");
         if (r === "shared") ymGoal("album_share", { folder });
       });
     },
-    [catalog.tracks, pushToast],
+    [catalog.tracks, folderRef, pushToast],
   );
 
   const handleOpenMedia = useCallback(
@@ -551,7 +664,13 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
       (navigator as Navigator & { standalone?: boolean }).standalone
     );
 
+  const feedNavValue = useMemo(
+    () => ({ feedScope, setFeedScope: navigateFeed, breadcrumbs }),
+    [breadcrumbs, feedScope, navigateFeed],
+  );
+
   return (
+  <FeedNavigationProvider value={feedNavValue}>
     <>
       <SplashScreen />
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
@@ -580,9 +699,11 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
           focusedSection={focusedSection}
           selectedPlaylist={selectedPlaylist}
           resumeCount={resumeCount}
+          feedScope={feedScope}
           onSelectView={(id) => {
             setView(id);
-            setFeedFolderFilter([]);
+            if (id === "all") navigateFeed({ level: "catalog" });
+            else setFeedScope({ level: "catalog" });
             setSelectedPlaylist(null);
             setFocusedSection(null);
             if (id === "resume") {
@@ -590,13 +711,20 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
             }
             closeNav();
           }}
+          onNavigateCatalog={() => navigateFeed({ level: "catalog" })}
+          onNavigateSection={(sectionId) =>
+            navigateFeed({ level: "section", sectionId })
+          }
+          onNavigateFolder={(sectionId, folder) =>
+            navigateFeed({ level: "folder", sectionId, folder })
+          }
           onScrollToFolder={handleScrollToFolder}
           onFocusSection={setFocusedSection}
           onAddFolderToSelection={handleAddFolderToSelection}
           onSelectPlaylist={(id) => {
             setView("playlist");
             setSelectedPlaylist(id);
-            setFeedFolderFilter([]);
+            navigateFeed({ level: "catalog" });
             closeNav();
           }}
           onOpenPlaylistModal={() => setShowPlaylistModal(true)}
@@ -658,11 +786,19 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
             user={user}
             tracks={tracks}
             view={view}
+            feedScope={feedScope}
+            feedMode={feedMode}
             feedFolderFilter={feedFolderFilter}
+            breadcrumbs={breadcrumbs}
+            sectionEntries={sectionEntries}
+            folderEntries={folderEntries}
+            onNavigate={navigateFeed}
             scrollToFolder={scrollToFolder}
             onScrolledToFolder={handleScrolledToFolder}
             onClearFeedFilter={handleClearFeedFilter}
             onFilterOnlyFolder={handleFilterOnlyFolder}
+            onShareFolderScoped={handleShareFolder}
+            renderFeedToolbar={renderFeedToolbar}
             selectedPlaylist={selectedPlaylist}
             resumeTrack={resumeTrack}
             catalogLoading={catalogLoading}
@@ -767,5 +903,6 @@ export function PlayerApp({ renderHeader, renderHero }: PlayerAppSlots) {
         />
       ) : null}
     </>
+  </FeedNavigationProvider>
   );
 }

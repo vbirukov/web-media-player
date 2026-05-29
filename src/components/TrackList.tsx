@@ -9,7 +9,14 @@ import {
 import { storageKey } from "../playerConfig";
 import { useHeroCollapsed } from "../hooks/useHeroCollapsed";
 import { emptyStateCopy } from "../lib/emptyState";
+import type { CatalogSectionNav } from "../lib/catalogSections";
+import type { FolderFeedEntry } from "../lib/feedNavigation";
 import type { Catalog, Track } from "../types/catalog";
+import type {
+  BreadcrumbItem,
+  FeedMode,
+  FeedScope,
+} from "../types/navigation";
 import type {
   FeedLayout,
   FeedListenFilter,
@@ -17,6 +24,8 @@ import type {
   Progress,
   UserState,
 } from "../types/user";
+import { CatalogHierarchyFeed } from "./CatalogHierarchyFeed";
+import { FeedBreadcrumbs } from "./FeedBreadcrumbs";
 import { FeedLayoutSwitch } from "./FeedLayoutSwitch";
 import { FeedListenFilter as FeedListenFilterBar } from "./FeedListenFilter";
 import type { LivePlayback } from "../lib/trackProgress";
@@ -28,14 +37,23 @@ import { Icon } from "./icons/Icon";
 import { RastaSunLight } from "./RastaSunLight";
 import { JaipurClouds } from "./JaipurClouds";
 import { VirtualTrackGrid } from "./VirtualTrackGrid";
-import type { PlayerHeroSlotProps } from "../types/slots";
+import type {
+  PlayerFeedToolbarSlotProps,
+  PlayerHeroSlotProps,
+} from "../types/slots";
 
 type Props = {
   catalog: Catalog;
   user: UserState;
   tracks: Track[];
   view: LibraryView;
+  feedScope: FeedScope;
+  feedMode: FeedMode;
   feedFolderFilter: string[];
+  breadcrumbs: BreadcrumbItem[];
+  sectionEntries?: CatalogSectionNav[];
+  folderEntries?: FolderFeedEntry[];
+  onNavigate: (scope: FeedScope) => void;
   scrollToFolder: string | null;
   onScrolledToFolder: () => void;
   onClearFeedFilter: () => void;
@@ -67,6 +85,8 @@ type Props = {
   isJaipur: boolean;
   isRastamanLight: boolean;
   renderHero?: (props: PlayerHeroSlotProps) => ReactNode;
+  renderFeedToolbar?: (props: PlayerFeedToolbarSlotProps) => ReactNode;
+  onShareFolderScoped?: (sectionId: string, folder: string) => void;
 };
 
 export function TrackList({
@@ -74,7 +94,13 @@ export function TrackList({
   user,
   tracks,
   view,
+  feedScope,
+  feedMode,
   feedFolderFilter,
+  breadcrumbs,
+  sectionEntries,
+  folderEntries,
+  onNavigate,
   scrollToFolder,
   onScrolledToFolder,
   onClearFeedFilter,
@@ -106,6 +132,8 @@ export function TrackList({
   isJaipur,
   isRastamanLight,
   renderHero,
+  renderFeedToolbar,
+  onShareFolderScoped,
 }: Props) {
   const feedRef = useRef<HTMLDivElement>(null);
   const shuffleOnRef = useRef(user.shuffle);
@@ -184,19 +212,38 @@ export function TrackList({
   const empty = emptyStateCopy({
     view,
     feedFolderFilter,
+    feedMode,
+    sectionTitle,
     selectedPlaylist,
     playlistName,
     feedListenFilter: user.feedListenFilter,
   });
 
-  const feedFilterActive = feedFolderFilter.length > 0;
-  const showListenFilter = view !== "resume";
+  const feedFilterActive =
+    feedFolderFilter.length > 0 ||
+    feedScope.level === "folder" ||
+    feedScope.level === "selection";
+  const hierarchyBrowse = feedMode === "sections" || feedMode === "folders";
+  const showListenFilter = view !== "resume" && feedMode === "tracks";
 
   const showContinueBanner =
-    Boolean(resumeTrack) && view === "all" && !feedFilterActive;
+    Boolean(resumeTrack) &&
+    view === "all" &&
+    !feedFilterActive &&
+    feedScope.level === "catalog";
 
-  const showFolderHeaders = feedFilterActive || !user.shuffle;
-  const showFolderNames = user.shuffle && !feedFilterActive;
+  const showFolderHeaders =
+    feedMode === "tracks" &&
+    (feedFilterActive || !user.shuffle) &&
+    feedScope.level !== "folder";
+  const showFolderNames =
+    feedMode === "tracks" && user.shuffle && !feedFilterActive;
+
+  const toolbarSlot = renderFeedToolbar?.({
+    scope: feedScope,
+    breadcrumbs,
+    onNavigate,
+  });
 
   return (
     <section className="library-feed">
@@ -248,22 +295,34 @@ export function TrackList({
           onChange={onFeedListenFilterChange}
         />
       ) : null}
+      {toolbarSlot ?? (
+        <FeedBreadcrumbs
+          breadcrumbs={breadcrumbs}
+          scope={feedScope}
+          onNavigate={onNavigate}
+          showBack={feedScope.level !== "catalog"}
+        />
+      )}
       <div
         className={
-          feedFilterActive ? "feed-toolbar feed-toolbar--folder" : "feed-toolbar"
+          feedFilterActive || hierarchyBrowse
+            ? "feed-toolbar feed-toolbar--folder"
+            : "feed-toolbar"
         }
       >
-        {feedFilterActive ? (
+        {(feedFilterActive || hierarchyBrowse) && !toolbarSlot ? (
           <div className="feed-toolbar__lead">
             <div className="feed-toolbar__heading">
               <h2 className="feed-toolbar__title">{sectionTitle}</h2>
-              <button
-                type="button"
-                className="ghost feed-toolbar__reset"
-                onClick={onClearFeedFilter}
-              >
-                Сбросить фильтр
-              </button>
+              {feedFilterActive ? (
+                <button
+                  type="button"
+                  className="ghost feed-toolbar__reset"
+                  onClick={onClearFeedFilter}
+                >
+                  Сбросить фильтр
+                </button>
+              ) : null}
             </div>
             <p className="feed-toolbar__sub mini-text">{sectionSub}</p>
           </div>
@@ -272,7 +331,9 @@ export function TrackList({
           {feedFilterActive && renderSelectionOffline ? (
             <div className="feed-toolbar__offline">{renderSelectionOffline}</div>
           ) : null}
-          {feedFilterActive && feedFolderFilter.length === 1 && onShareFolder ? (
+          {feedFilterActive &&
+          feedFolderFilter.length === 1 &&
+          onShareFolder ? (
             <button
               type="button"
               className="ghost feed-toolbar__share"
@@ -282,10 +343,12 @@ export function TrackList({
               <span>Поделиться альбомом</span>
             </button>
           ) : null}
-          <FeedLayoutSwitch
-            value={user.feedLayout ?? "tiles"}
-            onChange={onFeedLayoutChange}
-          />
+          {feedMode === "tracks" ? (
+            <FeedLayoutSwitch
+              value={user.feedLayout ?? "tiles"}
+              onChange={onFeedLayoutChange}
+            />
+          ) : null}
         </div>
       </div>
       {catalogLoading ? (
@@ -318,6 +381,28 @@ export function TrackList({
           isTrackDownloading={isTrackDownloading}
           onTrackOfflineAction={onTrackOfflineAction}
         />
+      ) : hierarchyBrowse ? (
+        (feedMode === "sections" && !sectionEntries?.length) ||
+        (feedMode === "folders" && !folderEntries?.length) ? (
+          <section className="cards cards--empty" aria-live="polite">
+            <div className="empty">
+              <h4 className="empty-title">{empty.title}</h4>
+              <p>{empty.hint}</p>
+            </div>
+          </section>
+        ) : (
+          <CatalogHierarchyFeed
+            mode={feedMode === "sections" ? "sections" : "folders"}
+            sectionEntries={sectionEntries}
+            folderEntries={folderEntries}
+            onOpenSection={(sectionId) =>
+              onNavigate({ level: "section", sectionId })
+            }
+            onOpenFolder={(scope) => onNavigate(scope)}
+            onShareFolder={onShareFolderScoped}
+            renderFolderOffline={renderFolderOffline}
+          />
+        )
       ) : tracks.length === 0 ? (
         <section className="cards cards--empty" aria-live="polite">
           <div className="empty">

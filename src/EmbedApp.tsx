@@ -12,7 +12,7 @@ import { sharePageUrl, resolveSiteOrigin } from "./lib/shareOg";
 
 const catalogFilters = {
   view: "all" as const,
-  feedFolderFilter: [],
+  feedScope: { level: "catalog" as const },
   selectedPlaylist: null,
   feedListenFilter: "all" as const,
   mediaKindFilter: "all" as const,

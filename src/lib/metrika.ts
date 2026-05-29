@@ -1,3 +1,4 @@
+import type { FeedScope } from "../types/navigation";
 import type { LibraryView } from "../types/user";
 
 /** Публичный номер счётчика; fallback если CI собрал без VITE_YM_COUNTER_ID */
@@ -37,7 +38,18 @@ export function libraryScreenPath(
   view: LibraryView,
   folder: string | null,
   playlistId: string | null,
+  feedScope?: FeedScope,
 ): string {
+  if (feedScope?.level === "folder") {
+    return `/library/${encodeURIComponent(feedScope.sectionId)}/${encodeURIComponent(feedScope.folder)}`;
+  }
+  if (feedScope?.level === "section") {
+    return `/library/${encodeURIComponent(feedScope.sectionId)}`;
+  }
+  if (feedScope?.level === "selection" && feedScope.folders.length === 1) {
+    const f = feedScope.folders[0]!;
+    return `/library/${encodeURIComponent(f.sectionId)}/${encodeURIComponent(f.folder)}`;
+  }
   if (folder) return `/library/folder/${encodeURIComponent(folder)}`;
   if (view === "playlist" && playlistId) {
     return `/library/playlist/${encodeURIComponent(playlistId)}`;

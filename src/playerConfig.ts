@@ -20,6 +20,12 @@ export type PlayerCatalogSource = {
   apiRoot: string;
 };
 
+export type CatalogNavigationConfig = {
+  mode?: "hierarchical" | "flat";
+  catalogRoot?: "sections" | "flat-tracks";
+  sectionView?: "folder-cards" | "tracks-with-headers";
+};
+
 export type PlayerFeatures = {
   offline: boolean;
   pwa: boolean;
@@ -44,6 +50,7 @@ export type PlayerConfig = {
    * @deprecated Используй `branding.appTitle`
    */
   appName?: string;
+  catalogNavigation?: CatalogNavigationConfig;
 };
 
 let activeConfig: PlayerConfig | null = null;

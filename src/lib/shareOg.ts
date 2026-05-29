@@ -113,9 +113,22 @@ export function catalogSharePageUrl(origin: string): string {
   return new URL(catalogSharePagePath(), `${base}/`).href;
 }
 
-export function appDeepLinkFolder(folder: string, origin: string): string {
+export function appDeepLinkFolder(
+  folder: string,
+  origin: string,
+  sectionId?: string,
+): string {
   const url = new URL("/", origin || "http://localhost");
+  if (sectionId?.trim()) {
+    url.searchParams.set("section", utf8ShareSlug(sectionId.trim()));
+  }
   url.searchParams.set("album", folderShareSlug(folder));
+  return url.pathname + url.search;
+}
+
+export function appDeepLinkSection(sectionId: string, origin: string): string {
+  const url = new URL("/", origin || "http://localhost");
+  url.searchParams.set("section", utf8ShareSlug(sectionId));
   return url.pathname + url.search;
 }
 

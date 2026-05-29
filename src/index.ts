@@ -4,7 +4,20 @@ export { PlayerApp } from "./PlayerApp";
 export type {
   PlayerHeaderSlotProps,
   PlayerHeroSlotProps,
+  PlayerFeedToolbarSlotProps,
 } from "./types/slots";
+export type {
+  FeedScope,
+  FolderRef,
+  FeedMode,
+  BreadcrumbItem,
+} from "./types/navigation";
+export {
+  folderRefFromTrack,
+  isHierarchicalNavigation,
+  getCatalogNavigationConfig,
+} from "./lib/feedNavigation";
+export { usePlayerNavigation } from "./context/FeedNavigationContext";
 export {
   setPlayerConfig,
   getPlayerConfig,
@@ -13,6 +26,7 @@ export {
   type PlayerStorageKeys,
   type PlayerCatalogSource,
   type PlayerFeatures,
+  type CatalogNavigationConfig,
 } from "./playerConfig";
 export { EmbedApp } from "./EmbedApp";
 export { DEFAULT_THEME_OPTIONS, getThemeOptions, type AppSkin } from "./themes";

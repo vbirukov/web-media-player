@@ -21,16 +21,27 @@ import { listenStatus, matchesFeedListenFilter } from "../lib/listenStatus";
 import { matchesMediaKindFilter, trackKind, type MediaKindFilter } from "../lib/mediaKind";
 import { normalizeCatalog } from "../lib/normalizeCatalog";
 import { pickAdjacentId, shuffleIds, shuffleIdsLeading } from "../lib/queue";
+import {
+  buildBreadcrumbs,
+  buildFolderFeedEntries,
+  feedScopeToFolderNames,
+  resolveFeedMode,
+  sectionEntriesForScope,
+  sortTracksForCatalog,
+  trackMatchesFeedScope,
+} from "../lib/feedNavigation";
 import type { Catalog, Track } from "../types/catalog";
+import type { FeedScope } from "../types/navigation";
 import type { FeedListenFilter, LibraryView, UserState } from "../types/user";
 
 type Filters = {
   view: LibraryView;
-  feedFolderFilter: string[];
+  feedScope: FeedScope;
+  /** @deprecated — используй feedScope; оставлено для flat/legacy */
+  feedFolderFilter?: string[];
   selectedPlaylist: string | null;
   feedListenFilter: FeedListenFilter;
   mediaKindFilter: MediaKindFilter;
-  /** Ref на текущий трек — при включении shuffle ставится первым в очереди */
   leadTrackIdRef?: RefObject<string | null>;
 };
 
@@ -43,6 +54,12 @@ function resolveLeadId(
   if (fromRef && filteredIds.includes(fromRef)) return fromRef;
   if (lastTrackId && filteredIds.includes(lastTrackId)) return lastTrackId;
   return null;
+}
+
+function legacyFolderFilter(scope: FeedScope, legacy?: string[]): string[] {
+  const fromScope = feedScopeToFolderNames(scope);
+  if (fromScope.length) return fromScope;
+  return legacy ?? [];
 }
 
 export function useCatalog(user: UserState, filters: Filters) {
@@ -60,6 +77,16 @@ export function useCatalog(user: UserState, filters: Filters) {
   const [queue, setQueue] = useState<string[]>([]);
   const catalogReportedRef = useRef(false);
   const refreshInFlightRef = useRef(false);
+
+  const folderFilter = useMemo(
+    () => legacyFolderFilter(filters.feedScope, filters.feedFolderFilter),
+    [filters.feedFolderFilter, filters.feedScope],
+  );
+
+  const feedMode = useMemo(
+    () => resolveFeedMode(filters.view, filters.feedScope),
+    [filters.feedScope, filters.view],
+  );
 
   const applyCatalog = useCallback((cat: Catalog) => {
     const prepared = catalogWithServerMediaUrls(normalizeCatalog(cat));
@@ -141,10 +168,15 @@ export function useCatalog(user: UserState, filters: Filters) {
 
   const filteredTracks = useMemo(() => {
     let list: Track[] = [...catalog.tracks];
-    if (filters.feedFolderFilter.length > 0) {
-      const allowed = new Set(filters.feedFolderFilter);
-      list = list.filter((t) => allowed.has(t.folder));
+
+    if (feedMode !== "tracks") {
+      list = [];
+    } else {
+      list = list.filter((t) =>
+        trackMatchesFeedScope(t, filters.feedScope, filters.view),
+      );
     }
+
     if (filters.view === "liked") {
       list = list.filter((t) => user.likes[t.id]);
     }
@@ -172,8 +204,9 @@ export function useCatalog(user: UserState, filters: Filters) {
     return list;
   }, [
     catalog.tracks,
+    feedMode,
     filters.feedListenFilter,
-    filters.feedFolderFilter,
+    filters.feedScope,
     filters.mediaKindFilter,
     filters.selectedPlaylist,
     filters.view,
@@ -182,19 +215,29 @@ export function useCatalog(user: UserState, filters: Filters) {
     user.playlists,
   ]);
 
+  const sectionEntries = useMemo(() => {
+    if (feedMode !== "sections") return undefined;
+    return sectionEntriesForScope(catalog, filters.mediaKindFilter);
+  }, [catalog, feedMode, filters.mediaKindFilter]);
+
+  const folderEntries = useMemo(() => {
+    if (feedMode !== "folders") return undefined;
+    if (filters.feedScope.level !== "section") return undefined;
+    return buildFolderFeedEntries(
+      catalog,
+      filters.feedScope.sectionId,
+      filters.mediaKindFilter,
+    );
+  }, [catalog, feedMode, filters.feedScope, filters.mediaKindFilter]);
+
   const audioFilteredTracks = useMemo(
     () => filteredTracks.filter((t) => trackKind(t) === "audio"),
     [filteredTracks],
   );
 
   const sortTracks = useCallback(
-    (list: Track[]) =>
-      [...list].sort(
-        (a, b) =>
-          a.folder.localeCompare(b.folder, "ru") ||
-          a.title.localeCompare(b.title, "ru"),
-      ),
-    [],
+    (list: Track[]) => sortTracksForCatalog(list, catalog),
+    [catalog],
   );
 
   const filteredIds = useMemo(
@@ -284,31 +327,77 @@ export function useCatalog(user: UserState, filters: Filters) {
     );
   }, [catalog.tracks, progressOf, trackMap, user.playlists]);
 
-  const sectionTitle =
-    filters.feedFolderFilter.length === 1
-      ? filters.feedFolderFilter[0]!
-      : filters.feedFolderFilter.length > 1
-        ? `Выборка · ${filters.feedFolderFilter.length} серий`
-        : filters.view === "resume"
-          ? "Продолжить прослушивание"
-          : filters.view === "liked"
-            ? "Лайки"
-            : filters.view === "playlist"
-              ? `Плейлист: ${user.playlists.find((p) => p.id === filters.selectedPlaylist)?.name ?? ""}`
-              : "Каталог";
+  const breadcrumbs = useMemo(
+    () => buildBreadcrumbs(filters.feedScope, catalog),
+    [catalog, filters.feedScope],
+  );
 
-  const sectionSub =
-    filters.feedFolderFilter.length === 1
-      ? "Материалы выбранного раздела."
-      : filters.feedFolderFilter.length > 1
-        ? `${filteredTracks.length} материалов в выборке.`
-        : filters.mediaKindFilter !== "all"
-          ? `Фильтр: ${filters.mediaKindFilter}.`
-          : useServerMedia()
-            ? "Каталог с сервера: аудио, видео и тексты."
-            : catalog.loaded
-              ? "Индекс публичной папки Яндекс.Диска."
-              : "Fallback до полной индексации каталога.";
+  const sectionTitle = useMemo(() => {
+    const scope = filters.feedScope;
+    if (scope.level === "folder") return scope.folder;
+    if (scope.level === "section") return scope.sectionId;
+    if (scope.level === "selection") {
+      return scope.folders.length === 1
+        ? scope.folders[0]!.folder
+        : `Выборка · ${scope.folders.length} серий`;
+    }
+    if (folderFilter.length === 1) return folderFilter[0]!;
+    if (folderFilter.length > 1) return `Выборка · ${folderFilter.length} серий`;
+    if (filters.view === "resume") return "Продолжить прослушивание";
+    if (filters.view === "liked") return "Лайки";
+    if (filters.view === "playlist") {
+      return `Плейлист: ${user.playlists.find((p) => p.id === filters.selectedPlaylist)?.name ?? ""}`;
+    }
+    if (feedMode === "sections") return "Каталог";
+    if (feedMode === "folders") {
+      return scope.level === "section" ? scope.sectionId : "Каталог";
+    }
+    return "Каталог";
+  }, [
+    feedMode,
+    folderFilter,
+    filters.feedScope,
+    filters.selectedPlaylist,
+    filters.view,
+    user.playlists,
+  ]);
+
+  const sectionSub = useMemo(() => {
+    const scope = filters.feedScope;
+    if (feedMode === "sections") {
+      const n = sectionEntries?.length ?? 0;
+      return `${n} разделов · выберите серию или папку.`;
+    }
+    if (feedMode === "folders" && scope.level === "section") {
+      const n = folderEntries?.length ?? 0;
+      return `${n} папок в разделе.`;
+    }
+    if (scope.level === "folder") return "Материалы выбранной папки.";
+    if (scope.level === "selection") {
+      return `${filteredTracks.length} материалов в выборке.`;
+    }
+    if (folderFilter.length === 1) return "Материалы выбранного раздела.";
+    if (folderFilter.length > 1) {
+      return `${filteredTracks.length} материалов в выборке.`;
+    }
+    if (filters.mediaKindFilter !== "all") {
+      return `Фильтр: ${filters.mediaKindFilter}.`;
+    }
+    return useServerMedia()
+      ? "Каталог с сервера: аудио, видео и тексты."
+      : catalog.loaded
+        ? "Индекс публичной папки Яндекс.Диска."
+        : "Fallback до полной индексации каталога.";
+  }, [
+    catalog.loaded,
+    feedMode,
+    filteredTracks.length,
+    folderEntries?.length,
+    folderFilter.length,
+    filters.feedScope,
+    filters.mediaKindFilter,
+    sectionEntries?.length,
+  ]);
 
   const nextTrackId = useCallback(
     (currentTrackId: string | null) => {
@@ -332,5 +421,10 @@ export function useCatalog(user: UserState, filters: Filters) {
     resumeTrack,
     sectionTitle,
     sectionSub,
+    feedMode,
+    folderEntries,
+    sectionEntries,
+    breadcrumbs,
+    feedFolderFilter: folderFilter,
   };
 }
