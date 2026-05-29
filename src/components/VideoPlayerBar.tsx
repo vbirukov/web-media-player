@@ -81,10 +81,24 @@ export function VideoPlayerBar({
   }, [currentTrack]);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 900px)");
-    const sync = () => setCompact(mq.matches);
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
+    const mobileMq = window.matchMedia("(max-width: 900px)");
+    const landscapeMq = window.matchMedia(
+      "(max-width: 900px) and (orientation: landscape)",
+    );
+    const sync = () => {
+      if (landscapeMq.matches) {
+        setCompact(true);
+        return;
+      }
+      setCompact(mobileMq.matches);
+    };
+    mobileMq.addEventListener("change", sync);
+    landscapeMq.addEventListener("change", sync);
+    sync();
+    return () => {
+      mobileMq.removeEventListener("change", sync);
+      landscapeMq.removeEventListener("change", sync);
+    };
   }, []);
 
   useEffect(() => {
