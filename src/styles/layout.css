@@ -479,7 +479,7 @@ html.video-player-mode-center.has-video-player .app-shell {
   opacity: 0.45;
 }
 
-.feed-breadcrumbs__segment {
+.feed-breadcrumbs__link {
   color: inherit;
   opacity: 0.72;
 }

@@ -36,16 +36,19 @@ export function FeedBreadcrumbs({
           const isLast = i === breadcrumbs.length - 1;
           return (
             <li key={`${item.scope.level}-${item.label}-${i}`}>
-              <span
-                className={
-                  isLast
-                    ? "feed-breadcrumbs__current"
-                    : "feed-breadcrumbs__segment"
-                }
-                aria-current={isLast ? "page" : undefined}
-              >
-                {item.label}
-              </span>
+              {isLast ? (
+                <span className="feed-breadcrumbs__current" aria-current="page">
+                  {item.label}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="ghost feed-breadcrumbs__link"
+                  onClick={() => onNavigate(item.scope)}
+                >
+                  {item.label}
+                </button>
+              )}
             </li>
           );
         })}
