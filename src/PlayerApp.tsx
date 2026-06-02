@@ -835,6 +835,9 @@ export function PlayerApp({
             }
             renderHero={renderHero}
             nextTrackId={nextTrackId(player.currentTrackId)}
+            playerBarActive={Boolean(
+              player.currentTrackId || videoPlayer.currentTrackId,
+            )}
           />
         </main>
       </div>

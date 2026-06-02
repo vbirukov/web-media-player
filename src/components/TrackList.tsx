@@ -36,6 +36,7 @@ import { RastaVideoBg } from "./RastaVideoBg";
 import { Icon } from "./icons/Icon";
 import { RastaSunLight } from "./RastaSunLight";
 import { JaipurClouds } from "./JaipurClouds";
+import { PlayerFeedSpacer } from "./PlayerFeedSpacer";
 import { VirtualTrackGrid } from "./VirtualTrackGrid";
 import type {
   PlayerFeedToolbarSlotProps,
@@ -87,6 +88,7 @@ type Props = {
   renderHero?: (props: PlayerHeroSlotProps) => ReactNode;
   renderFeedToolbar?: (props: PlayerFeedToolbarSlotProps) => ReactNode;
   onShareFolderScoped?: (sectionId: string, folder: string) => void;
+  playerBarActive?: boolean;
 };
 
 export function TrackList({
@@ -441,6 +443,7 @@ export function TrackList({
           onTrackOfflineAction={onTrackOfflineAction}
         />
       )}
+      <PlayerFeedSpacer active={playerBarActive} />
       </div>
     </section>
   );

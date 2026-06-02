@@ -6,6 +6,33 @@
   overflow: hidden;
 }
 
+/* Fallback visibility for media bars.
+   If host app forgot to include full player CSS or overrides it,
+   audio/video controls still stay visible and clickable. */
+.player-bar,
+.video-player-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147483000;
+}
+
+.player-bar-restore {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2147483001;
+}
+
+.player-audio-host {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .sidebar,
 .main {
   min-height: 0;
@@ -58,6 +85,11 @@
   max-width: 28rem;
   margin-inline: auto;
   text-align: center;
+}
+
+.library-feed-player-spacer {
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .video-player-bar {
