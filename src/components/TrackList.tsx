@@ -136,6 +136,7 @@ export function TrackList({
   renderHero,
   renderFeedToolbar,
   onShareFolderScoped,
+  playerBarActive = false,
 }: Props) {
   const feedRef = useRef<HTMLDivElement>(null);
   const shuffleOnRef = useRef(user.shuffle);
