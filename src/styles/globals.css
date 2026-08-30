@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Default light theme */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+/* Rastaman Theme - Dark, warm, earthy */
+[data-skin="rastaman"] {
+  --background: 195 20% 7%;
+  --foreground: 36 40% 96%;
+  --card: 195 20% 10%;
+  --card-foreground: 36 40% 96%;
+  --popover: 195 20% 10%;
+  --popover-foreground: 36 40% 96%;
+  --primary: 28 100% 62%;
+  --primary-foreground: 195 20% 7%;
+  --secondary: 195 20% 15%;
+  --secondary-foreground: 36 40% 96%;
+  --muted: 195 20% 15%;
+  --muted-foreground: 36 30% 70%;
+  --accent: 175 70% 38%;
+  --accent-foreground: 36 40% 96%;
+  --destructive: 5 70% 53%;
+  --destructive-foreground: 36 40% 96%;
+  --border: 195 20% 20%;
+  --input: 195 20% 15%;
+  --ring: 28 100% 62%;
+}
+
+/* Rastaman Light Theme - Warm, paper-like */
+[data-skin="rastaman-light"] {
+  --background: 40 60% 95%;
+  --foreground: 30 30% 20%;
+  --card: 40 60% 98%;
+  --card-foreground: 30 30% 20%;
+  --popover: 40 60% 98%;
+  --popover-foreground: 30 30% 20%;
+  --primary: 28 100% 62%;
+  --primary-foreground: 40 60% 98%;
+  --secondary: 40 40% 90%;
+  --secondary-foreground: 30 30% 20%;
+  --muted: 40 40% 90%;
+  --muted-foreground: 30 20% 50%;
+  --accent: 175 70% 38%;
+  --accent-foreground: 40 60% 98%;
+  --destructive: 5 70% 53%;
+  --destructive-foreground: 40 60% 98%;
+  --border: 40 40% 85%;
+  --input: 40 40% 90%;
+  --ring: 28 100% 62%;
+}
+
+/* Jaipur Theme - Royal, vibrant */
+[data-skin="jaipur"] {
+  --background: 220 50% 15%;
+  --foreground: 45 100% 95%;
+  --card: 220 50% 18%;
+  --card-foreground: 45 100% 95%;
+  --popover: 220 50% 18%;
+  --popover-foreground: 45 100% 95%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 220 50% 15%;
+  --secondary: 220 50% 25%;
+  --secondary-foreground: 45 100% 95%;
+  --muted: 220 50% 25%;
+  --muted-foreground: 45 50% 70%;
+  --accent: 330 80% 70%;
+  --accent-foreground: 220 50% 15%;
+  --destructive: 0 80% 60%;
+  --destructive-foreground: 45 100% 95%;
+  --border: 220 50% 30%;
+  --input: 220 50% 25%;
+  --ring: 217 91% 60%;
+}
+
+/* Moon Dub Theme - Deep, neon */
+[data-skin="moon-dub"] {
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+  --card: 222 47% 14%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222 47% 14%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 11%;
+  --secondary: 222 47% 20%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 222 47% 20%;
+  --muted-foreground: 210 20% 65%;
+  --accent: 270 90% 65%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 80% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 222 47% 25%;
+  --input: 222 47% 20%;
+  --ring: 217 91% 60%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Legacy layout utilities for backward compatibility */
+@layer utilities {
+  .app-shell {
+    @apply grid h-[100dvh] max-h-[100dvh] overflow-hidden;
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  }
+
+  @media (max-width: 900px) {
+    .app-shell {
+      @apply grid-cols-1 h-auto max-h-none overflow-visible;
+    }
+  }
+
+  .has-player .app-shell {
+    @apply pb-[178px];
+  }
+
+  @media (max-width: 900px) {
+    .has-player .app-shell {
+      @apply pb-[276px];
+    }
+  }
+}
