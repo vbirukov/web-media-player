@@ -81,13 +81,9 @@ export function FolderOfflineControl({
       className={cls}
       onClick={onDownload}
       aria-label={`Скачать серию «${folder}» для офлайн`}
+      title={partial ? `Докачать (${fmtProgress(progress.downloaded, progress.total)})` : "Скачать серию"}
     >
       <Icon name="download" size={15} aria-hidden />
-      <span>
-        {partial
-          ? `Докачать (${fmtProgress(progress.downloaded, progress.total)})`
-          : "Скачать серию"}
-      </span>
     </button>
   );
 }

@@ -6,6 +6,19 @@
 import type { Catalog, Track } from '../types/catalog'
 import type { UserState } from '../types/user'
 
+/**
+ * Образцы медиа для демо — публично доступные и стабильные URL,
+ * чтобы треки реально проигрывались без backend.
+ */
+const DEMO_AUDIO = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-'
+const DEMO_VIDEO =
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/'
+
+// data:-URI даёт текстам контент без backend (fetch() работает с data: URL).
+function textDataUri(markdown: string): string {
+  return `data:text/markdown;charset=utf-8,${encodeURIComponent(markdown)}`
+}
+
 export const mockTracks: Track[] = [
   // Audio tracks
   {
@@ -18,6 +31,7 @@ export const mockTracks: Track[] = [
     section: 'Практика',
     kind: 'audio',
     mimeType: 'audio/mp3',
+    url: `${DEMO_AUDIO}1.mp3`,
   },
   {
     id: 'audio-2',
@@ -29,6 +43,7 @@ export const mockTracks: Track[] = [
     section: 'Практика',
     kind: 'audio',
     mimeType: 'audio/mp3',
+    url: `${DEMO_AUDIO}2.mp3`,
   },
   {
     id: 'audio-3',
@@ -40,6 +55,7 @@ export const mockTracks: Track[] = [
     section: 'Практика',
     kind: 'audio',
     mimeType: 'audio/mp3',
+    url: `${DEMO_AUDIO}3.mp3`,
   },
   {
     id: 'audio-4',
@@ -51,6 +67,7 @@ export const mockTracks: Track[] = [
     section: 'Практика',
     kind: 'audio',
     mimeType: 'audio/mp3',
+    url: `${DEMO_AUDIO}4.mp3`,
   },
   {
     id: 'audio-5',
@@ -62,8 +79,9 @@ export const mockTracks: Track[] = [
     section: 'Практика',
     kind: 'audio',
     mimeType: 'audio/mp3',
+    url: `${DEMO_AUDIO}5.mp3`,
   },
-  
+
   // Video tracks
   {
     id: 'video-1',
@@ -75,6 +93,7 @@ export const mockTracks: Track[] = [
     section: 'Видео',
     kind: 'video',
     mimeType: 'video/mp4',
+    url: `${DEMO_VIDEO}BigBuckBunny.mp4`,
   },
   {
     id: 'video-2',
@@ -86,6 +105,7 @@ export const mockTracks: Track[] = [
     section: 'Видео',
     kind: 'video',
     mimeType: 'video/mp4',
+    url: `${DEMO_VIDEO}ElephantsDream.mp4`,
   },
   {
     id: 'video-3',
@@ -97,8 +117,9 @@ export const mockTracks: Track[] = [
     section: 'Видео',
     kind: 'video',
     mimeType: 'video/mp4',
+    url: `${DEMO_VIDEO}ForBiggerBlazes.mp4`,
   },
-  
+
   // Text tracks
   {
     id: 'text-1',
@@ -109,6 +130,19 @@ export const mockTracks: Track[] = [
     path: '/Статьи/Теория/mindfulness-basics.md',
     section: 'Статьи',
     kind: 'text',
+    url: textDataUri(`# Основы осознанности
+
+Осознанность — это способность быть полностью присутствующим в текущем моменте.
+
+## Ключевые принципы
+
+1. **Внимание к настоящему** — фокус на том, что происходит сейчас
+2. **Безоценочность** — наблюдение без критики
+3. **Принятие** — позволение вещам быть такими, какие они есть
+
+## Практика
+
+Начните с 5 минут в день. Сядьте удобно, закройте глаза и наблюдайте за дыханием.`),
   },
   {
     id: 'text-2',
@@ -119,6 +153,21 @@ export const mockTracks: Track[] = [
     path: '/Статьи/Теория/research.md',
     section: 'Статьи',
     kind: 'text',
+    url: textDataUri(`# Научные исследования медитации
+
+Многочисленные исследования подтверждают пользу медитации.
+
+## Основные выводы
+
+- Снижение стресса на 40%
+- Улучшение концентрации
+- Лучший сон
+- Снижение тревожности
+
+## Источники
+
+- Harvard Medical School, 2023
+- Journal of Mindfulness, 2024`),
   },
   {
     id: 'text-3',
@@ -129,6 +178,17 @@ export const mockTracks: Track[] = [
     path: '/Статьи/Практические руководства/breathing-guide.md',
     section: 'Статьи',
     kind: 'text',
+    url: textDataUri(`# Руководство по дыханию
+
+Правильное дыхание — основа всех медитативных практик.
+
+## Техника 4-7-8
+
+1. Вдох через нос (4 секунды)
+2. Задержка дыхания (7 секунд)
+3. Выдох через рот (8 секунд)
+
+Повторите 4 цикла.`),
   },
 ]
 

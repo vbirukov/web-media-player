@@ -5,9 +5,14 @@
 
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
-import { setPlayerConfig, DEFAULT_THEME_OPTIONS } from './playerConfig'
+import './styles/globals.css'
+import './styles/layout.css'
+import './styles/demo.css'
+import { setPlayerConfig } from './playerConfig'
+import { DEFAULT_THEME_OPTIONS } from './themes'
 import { PlayerApp } from './PlayerApp'
 import { DEMO_MODE, loadDemoCatalog } from './lib/demoConfig'
+import { mockCatalog } from './lib/mockData'
 
 // Configure player for demo mode
 setPlayerConfig({
@@ -37,13 +42,7 @@ setPlayerConfig({
     text: true,
   },
 
-  getFallbackCatalog: () => ({
-    sourceTitle: 'Демо библиотека',
-    sections: [],
-    folders: [],
-    tracks: [],
-    loaded: false,
-  }),
+  getFallbackCatalog: () => mockCatalog,
 
   themeOptions: DEFAULT_THEME_OPTIONS,
 

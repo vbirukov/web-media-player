@@ -244,9 +244,9 @@ function SectionBlock({
                   className="nav-item__share nav-item__share--stacked"
                   onClick={() => onShareFolder(folder.name)}
                   aria-label={`Поделиться «${folder.name}»`}
+                  title={`Поделиться «${folder.name}»`}
                 >
                   <Icon name="share" size={15} aria-hidden />
-                  <span>Поделиться</span>
                 </button>
               </div>
             );
