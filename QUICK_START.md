@@ -15,7 +15,7 @@ npx tailwindcss init -p
 
 ## Настройка (2 минуты)
 
-Скопируйте эти файлы из `@vbonline/player`:
+Скопируйте эти файлы из `@vbirukov/player`:
 - `tailwind.config.js`
 - `postcss.config.js`
 - `src/styles/globals.css`

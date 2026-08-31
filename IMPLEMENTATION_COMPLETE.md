@@ -2,7 +2,7 @@
 
 ## Summary
 
-The modernization of `@vbonline/player` to use **Tailwind CSS**, **shadcn/ui**, **Framer Motion**, and **lucide-react** is now complete with all configuration files, components, and documentation in place.
+The modernization of `@vbirukov/player` to use **Tailwind CSS**, **shadcn/ui**, **Framer Motion**, and **lucide-react** is now complete with all configuration files, components, and documentation in place.
 
 ---
 
@@ -93,7 +93,7 @@ npm install sonner
 ```
 
 ### 2. Copy Configuration Files
-Copy these files from `@vbonline/player` to your project:
+Copy these files from `@vbirukov/player` to your project:
 - `tailwind.config.js`
 - `postcss.config.js`
 - `components.json`
@@ -107,7 +107,7 @@ Add path aliases to `tsconfig.json` and `vite.config.ts` (if using Vite).
 ### 4. Import Global Styles
 ```tsx
 // In your app entry point
-import '@vbonline/player/styles/globals.css'
+import '@vbirukov/player/styles/globals.css'
 ```
 
 ### 5. Start Migrating Components
@@ -338,7 +338,7 @@ Host applications can now:
 
 ---
 
-**Project**: @vbonline/player  
+**Project**: @vbirukov/player  
 **Version**: 0.4.3 (Modernized)  
 **Date**: 2025-01-XX  
 **Stack**: Tailwind CSS + shadcn/ui + Framer Motion + lucide-react  

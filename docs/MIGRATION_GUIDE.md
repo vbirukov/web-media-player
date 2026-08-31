@@ -1,6 +1,6 @@
 # Migration Guide: BEM CSS → Tailwind CSS + shadcn/ui
 
-This guide helps you migrate the `@vbonline/player` from custom BEM CSS to modern Tailwind CSS with shadcn/ui components.
+This guide helps you migrate the `@vbirukov/player` from custom BEM CSS to modern Tailwind CSS with shadcn/ui components.
 
 ## Prerequisites
 
@@ -32,7 +32,7 @@ Create or update `tailwind.config.js` in your project root:
 export default {
   content: [
     "./src/**/*.{ts,tsx}",
-    "./node_modules/@vbonline/player/src/**/*.{ts,tsx}",
+    "./node_modules/@vbirukov/player/src/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
@@ -189,7 +189,7 @@ export default defineConfig({
 
 ### Before (Custom Icons)
 ```tsx
-import { Icon } from "@vbonline/player";
+import { Icon } from "@vbirukov/player";
 
 <Icon name="heart" size={20} />
 <Icon name="chevron-up" size={14} />

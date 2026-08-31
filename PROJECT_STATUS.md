@@ -234,7 +234,7 @@ The modernization project is **100% complete** and ready for use!
 
 ---
 
-**Project**: @vbonline/player  
+**Project**: @vbirukov/player  
 **Version**: 0.4.3 → Modernized  
 **Status**: ✅ **COMPLETE & PRODUCTION READY**  
 **Total Work**: 45+ files, 7,200+ lines  

@@ -21,7 +21,7 @@ npm run dev
 ### Вариант 2: Использовать DemoApp компонент
 
 ```tsx
-import { DemoApp } from '@vbonline/player'
+import { DemoApp } from '@vbirukov/player'
 
 // DemoApp уже настроен с MOCK данными
 <DemoApp />
@@ -102,7 +102,7 @@ export const DEMO_MODE = false
 Или используйте обычный `PlayerApp` с реальной конфигурацией:
 
 ```tsx
-import { PlayerApp, setPlayerConfig } from '@vbonline/player'
+import { PlayerApp, setPlayerConfig } from '@vbirukov/player'
 
 setPlayerConfig({
   // Ваша реальная конфигурация

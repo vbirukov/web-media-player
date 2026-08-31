@@ -6,7 +6,7 @@
 
 ### 1. Конфигурационные файлы (обязательно)
 
-Скопируйте из `@vbonline/player` в корень вашего проекта:
+Скопируйте из `@vbirukov/player` в корень вашего проекта:
 
 ```
 tailwind.config.js       → your-project/tailwind.config.js

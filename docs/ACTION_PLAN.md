@@ -77,7 +77,7 @@ npm run dev
 
 **Или используйте DemoApp компонент:**
 ```tsx
-import { DemoApp } from '@vbonline/player'
+import { DemoApp } from '@vbirukov/player'
 <DemoApp />
 ```
 

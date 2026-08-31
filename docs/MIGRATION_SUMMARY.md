@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the comprehensive modernization of the `@vbonline/player` application, migrating from custom BEM CSS to a modern stack consisting of **Tailwind CSS**, **shadcn/ui**, **Framer Motion**, and **lucide-react** icons.
+This document summarizes the comprehensive modernization of the `@vbirukov/player` application, migrating from custom BEM CSS to a modern stack consisting of **Tailwind CSS**, **shadcn/ui**, **Framer Motion**, and **lucide-react** icons.
 
 ## Files Created
 

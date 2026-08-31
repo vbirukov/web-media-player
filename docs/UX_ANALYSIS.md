@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a thorough UX analysis of the `@vbonline/player` web media player application and outlines a comprehensive migration plan to modernize its styling system using **Tailwind CSS**, **shadcn/ui**, **Framer Motion**, and **lucide-react** icons.
+This document provides a thorough UX analysis of the `@vbirukov/player` web media player application and outlines a comprehensive migration plan to modernize its styling system using **Tailwind CSS**, **shadcn/ui**, **Framer Motion**, and **lucide-react** icons.
 
 ---
 

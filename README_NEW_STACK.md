@@ -265,7 +265,7 @@ Example:
 
 ```tsx
 // Before
-import { Icon } from '@vbonline/player'
+import { Icon } from '@vbirukov/player'
 <Icon name="heart" size={20} />
 
 // After (Option 1: Direct lucide-react)

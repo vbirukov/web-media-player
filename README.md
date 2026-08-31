@@ -1,8 +1,10 @@
-# @vbonline/player
+# @vbirukov/player
 
 Фронтовый движок мультимедиа-библиотеки: аудио, видео, тексты; каталог (Yandex Disk / `catalog.json`), плеер, плейлисты, офлайн, темы, PWA, embed.
 
-**npm:** https://www.npmjs.com/package/@vbonline/player
+**GitHub Packages:** https://github.com/vbirukov/web-media-player/pkgs/npm/player
+
+> Пакет публикуется в **GitHub Packages** (registry `https://npm.pkg.github.com`), не в npmjs.com. См. раздел «Установка» ниже — потребителю нужен `.npmrc` с токеном.
 
 ## 🎨 Modernized UI Stack
 
@@ -37,13 +39,21 @@ This project now supports **Tailwind CSS**, **shadcn/ui**, **Framer Motion**, an
 
 ## Быстрый старт
 
+Пакет в **GitHub Packages**. Для установки потребителю нужен токен с правами `read:packages`:
+
 ```bash
-npm install @vbonline/player @tanstack/react-virtual
+# .npmrc в проекте-потребителе
+@vbirukov:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${NPM_TOKEN}   # или реальный PAT
+```
+
+```bash
+npm install @vbirukov/player @tanstack/react-virtual
 ```
 
 ```ts
 // src/player/setup.ts
-import { setPlayerConfig, DEFAULT_THEME_OPTIONS } from "@vbonline/player";
+import { setPlayerConfig, DEFAULT_THEME_OPTIONS } from "@vbirukov/player";
 
 setPlayerConfig({
   branding: {
@@ -78,7 +88,7 @@ setPlayerConfig({
 ```tsx
 // main.tsx — import "./player/setup" первым
 // App.tsx
-import { PlayerApp } from "@vbonline/player";
+import { PlayerApp } from "@vbirukov/player";
 
 <PlayerApp renderHeader={(p) => <MyHeader {...p} />} />
 ```

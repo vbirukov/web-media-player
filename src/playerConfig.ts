@@ -62,7 +62,7 @@ export function setPlayerConfig(config: PlayerConfig): void {
 export function getPlayerConfig(): PlayerConfig {
   if (!activeConfig) {
     throw new Error(
-      "[@vbonline/player] Вызови setPlayerConfig() до рендера PlayerApp",
+      "[@vbirukov/player] Вызови setPlayerConfig() до рендера PlayerApp",
     );
   }
   return activeConfig;

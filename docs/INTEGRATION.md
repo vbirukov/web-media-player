@@ -1,15 +1,15 @@
-# Интеграция `@vbonline/player` в новый проект
+# Интеграция `@vbirukov/player` в новый проект
 
 Документ для разработчика и для AI-агента: пошаговое подключение плеера к **Vite + React 18** хост-приложению.
 
-Пакет на npm: https://www.npmjs.com/package/@vbonline/player
+Пакет на **GitHub Packages**: https://github.com/vbirukov/web-media-player/pkgs/npm/player
 
 ---
 
 ## Чеклист для агента (выполнить по порядку)
 
 - [ ] 1. Убедиться: React 18+, Vite 5+, TypeScript
-- [ ] 2. `npm install @vbonline/player @tanstack/react-virtual` (+ peers `react`, `react-dom`)
+- [ ] 2. `npm install @vbirukov/player @tanstack/react-virtual` (+ peers `react`, `react-dom`)
 - [ ] 3. Настроить `vite.config.ts` (`optimizeDeps`, `dedupe`) — см. §3
 - [ ] 4. Создать `src/player/setup.ts` с `setPlayerConfig()` — см. §4
 - [ ] 5. Импортировать setup **до** рендера в `main.tsx`
@@ -24,7 +24,7 @@
 
 ## 1. Что это за пакет
 
-`@vbonline/player` — React-движок мультимедиа-библиотеки:
+`@vbirukov/player` — React-движок мультимедиа-библиотеки:
 
 | Возможность | Описание |
 |-------------|----------|
@@ -36,14 +36,25 @@
 | PWA | Регистрация SW из хоста |
 | Embed | Отдельный мини-плеер для одного трека |
 
-**Важно:** в npm публикуются **исходники TypeScript** (`src/`), не скомпилированный `dist/`. Хост должен уметь обрабатывать `.ts` из `node_modules` (Vite — да).
+**Важно:** в пакет публикуются **исходники TypeScript** (`src/`), не скомпилированный `dist/`. Хост должен уметь обрабатывать `.ts` из `node_modules` (Vite — да).
 
 ---
 
 ## 2. Установка
 
+Пакет публикуется в **GitHub Packages** (не npmjs.com), поэтому нужен токен c правом `read:packages`.
+
+Создай `.npmrc` в **корне хост-проекта**:
+
+```ini
+@vbirukov:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=<GITHUB_PAT_READ_PACKAGES>
+```
+
+Либо — для CI — передавай токен через переменную окружения `NPM_TOKEN`/`NODE_AUTH_TOKEN` и держи его вне репозитория.
+
 ```bash
-npm install @vbonline/player@latest @tanstack/react-virtual
+npm install @vbirukov/player@latest @tanstack/react-virtual
 ```
 
 Peer dependencies (должны быть в проекте):
@@ -66,10 +77,10 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    include: ["@vbonline/player", "@tanstack/react-virtual"],
+    include: ["@vbirukov/player", "@tanstack/react-virtual"],
   },
   ssr: {
-    noExternal: ["@vbonline/player"],
+    noExternal: ["@vbirukov/player"],
   },
   resolve: {
     dedupe: ["react", "react-dom"],
@@ -89,7 +100,7 @@ export default defineConfig({
 import {
   setPlayerConfig,
   DEFAULT_THEME_OPTIONS,
-} from "@vbonline/player";
+} from "@vbirukov/player";
 
 setPlayerConfig({
   appName: "my-app",
@@ -153,7 +164,7 @@ setPlayerConfig({
 | `getFallbackCatalog` | Каталог до загрузки / при ошибке |
 | `themeOptions` | Список скинов (или свой массив `ThemeMeta`) |
 
-**Ошибка** `[@vbonline/player] Вызови setPlayerConfig()` — setup не импортирован до `<PlayerApp />`.
+**Ошибка** `[@vbirukov/player] Вызови setPlayerConfig()` — setup не импортирован до `<PlayerApp />`.
 
 ---
 
@@ -177,7 +188,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 ## 6. Страница с плеером (`App.tsx`)
 
 ```tsx
-import { PlayerApp } from "@vbonline/player";
+import { PlayerApp } from "@vbirukov/player";
 import { MyHeader } from "./components/MyHeader";
 import { MyHero } from "./components/MyHero";
 
@@ -267,7 +278,7 @@ VITE_YM_COUNTER_ID=12345678
 
 ```ts
 // main.tsx
-import "@vbonline/player/layout.css";
+import "@vbirukov/player/layout.css";
 ```
 
 Файл чинит центрирование `.empty` в `.library-feed-content .cards` и другие layout-мелочи без полного UI-kit.
@@ -400,7 +411,7 @@ CSS хоста должен содержать правила вида `[data-sk
 import "./player/setup";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { EmbedApp } from "@vbonline/player";
+import { EmbedApp } from "@vbirukov/player";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<EmbedApp />);
 ```
@@ -452,8 +463,8 @@ export type { Track, Catalog, MediaKind, MediaKindFilter };
 export type { PlayerHeaderSlotProps, PlayerHeroSlotProps };
 
 // Subpath (package.json exports)
-import something from "@vbonline/player/lib/shareOg";
-import { ... } from "@vbonline/player/themes";
+import something from "@vbirukov/player/lib/shareOg";
+import { ... } from "@vbirukov/player/themes";
 ```
 
 ---
@@ -549,7 +560,7 @@ setPlayerConfig({
 ### Темы — только встроенные (подмножество)
 
 ```ts
-import { DEFAULT_THEME_OPTIONS } from "@vbonline/player";
+import { DEFAULT_THEME_OPTIONS } from "@vbirukov/player";
 
 // Только 2 темы из 4 встроенных:
 themeOptions: DEFAULT_THEME_OPTIONS.filter((t) =>
@@ -560,7 +571,7 @@ themeOptions: DEFAULT_THEME_OPTIONS.filter((t) =>
 ### Темы — добавить свои
 
 ```ts
-import { DEFAULT_THEME_OPTIONS, type ThemeMeta } from "@vbonline/player";
+import { DEFAULT_THEME_OPTIONS, type ThemeMeta } from "@vbirukov/player";
 
 const myTheme: ThemeMeta = {
   id: "my-dark",          // произвольная строка
@@ -612,10 +623,10 @@ themeOptions: [
 ## 18. Обновление пакета
 
 ```bash
-npm install @vbonline/player@latest
+npm install @vbirukov/player@latest
 ```
 
-Проверь CHANGELOG / версию: `npm view @vbonline/player version`.
+Проверь CHANGELOG / версию: `npm view @vbirukov/player version`.
 
 После мажорных обновлений — сверить этот документ и `README.md`.
 
@@ -646,7 +657,7 @@ my-app/
 ## 20. Промпт для AI-агента (копипаст)
 
 ```
-Интегрируй @vbonline/player в этот Vite+React проект по docs/INTEGRATION.md
+Интегрируй @vbirukov/player в этот Vite+React проект по docs/INTEGRATION.md
 из пакета (или по локальному docs/INTEGRATION.md в репозитории web-media-player).
 
 Сделай: install deps, vite.config optimizeDeps+dedupe, src/player/setup.ts
@@ -659,4 +670,4 @@ my-app/
 
 ---
 
-*Версия документа: для `@vbonline/player` ≥ 0.2.x*
+*Версия документа: для `@vbirukov/player` ≥ 0.2.x*

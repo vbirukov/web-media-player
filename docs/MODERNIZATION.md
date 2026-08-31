@@ -1,6 +1,6 @@
 # Modernization: Tailwind CSS + shadcn/ui + Framer Motion + lucide-react
 
-This document describes the modernized styling and component system for `@vbonline/player`.
+This document describes the modernized styling and component system for `@vbirukov/player`.
 
 ## Overview
 
@@ -49,7 +49,7 @@ See `tailwind.config.js` and `postcss.config.js` in the project root.
 
 ```tsx
 // In your app's entry point
-import '@vbonline/player/styles/globals.css'
+import '@vbirukov/player/styles/globals.css'
 ```
 
 ### 4. Use Components

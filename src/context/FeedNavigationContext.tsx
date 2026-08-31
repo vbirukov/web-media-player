@@ -27,7 +27,7 @@ export function usePlayerNavigation(): FeedNavigationValue {
   const ctx = useContext(FeedNavigationContext);
   if (!ctx) {
     throw new Error(
-      "[@vbonline/player] usePlayerNavigation() только внутри PlayerApp",
+      "[@vbirukov/player] usePlayerNavigation() только внутри PlayerApp",
     );
   }
   return ctx;
