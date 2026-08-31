@@ -26,9 +26,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Tag must name the version, e.g. v0.4.4
-      - name: Sync package version to tag
-        run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version
+      # Ensure package.json version matches the tag (e.g. tag v0.4.4 -> 0.4.4).
+      # No-op when they already match (npm version would fail with "Version not changed").
+      - name: Verify package version matches tag
+        shell: bash
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          echo "tag=$TAG_VERSION package=$PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            npm version "$TAG_VERSION" --no-git-tag-version
+          fi
 
       - name: Publish
         run: npm publish
