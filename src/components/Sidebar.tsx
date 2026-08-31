@@ -166,10 +166,8 @@ function SectionBlock({
         onClick={() => {
           if (hierarchicalNav) {
             onNavigateSection(section.id);
-            return;
           }
           onToggle();
-          onFocusSection(section.id);
         }}
         aria-expanded={expanded}
       >
@@ -308,7 +306,7 @@ export function Sidebar({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set());
 
   const isExpanded = (id: string) =>
-    expandedSections.has(id) || focusedSection === id || sections.length <= 2;
+    expandedSections.has(id) || sections.length <= 2;
 
   const toggleSection = (id: string) => {
     setExpandedSections((prev) => {
