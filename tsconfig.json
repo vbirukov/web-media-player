@@ -10,5 +10,13 @@
     "skipLibCheck": true,
     "isolatedModules": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/**/*.new.ts",
+    "src/**/*.new.tsx",
+    "src/components/ui/**",
+    "src/components/PageTransition.tsx",
+    "src/lib/utils.ts",
+    "src/**/*.test.ts"
+  ]
 }

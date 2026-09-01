@@ -288,9 +288,13 @@ export function Sidebar({
   const hierarchicalNav = isHierarchicalNavigation();
   const likeCount = Object.keys(user.likes).length;
   const extraViews = [
-    resumeCount > 0 ? (["resume", `Продолжить · ${resumeCount}`] as const) : null,
-    likeCount > 0 ? (["liked", `Лайки · ${likeCount}`] as const) : null,
-  ].filter((item): item is readonly ["resume" | "liked", string] => item != null);
+    resumeCount > 0
+      ? { id: "resume" as const, label: `Продолжить · ${resumeCount}` }
+      : null,
+    likeCount > 0
+      ? { id: "liked" as const, label: `Лайки · ${likeCount}` }
+      : null,
+  ].filter((item) => item != null);
 
   const selectionActive = feedFolderFilter.length > 0;
   const selectionSet = useMemo(
@@ -341,7 +345,7 @@ export function Sidebar({
             Весь каталог{" "}
             <span className="nav-sublabel">({catalog.tracks.length})</span>
           </button>
-          {extraViews.map(([id, label]) => (
+          {extraViews.map(({ id, label }) => (
             <button
               key={id}
               className={view === id ? "nav active" : "nav"}

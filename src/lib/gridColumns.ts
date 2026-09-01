@@ -26,6 +26,7 @@ export function measureFeedGridWidth(anchor: HTMLElement | null): number {
   const feed = anchor.closest(".library-feed-content") as HTMLElement | null;
   const main = anchor.closest(".main") as HTMLElement | null;
   for (const node of [feed, main, anchor]) {
+    if (!node) continue;
     const w = node.getBoundingClientRect().width;
     if (w > 0) return w;
   }

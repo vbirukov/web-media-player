@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 
 function isSlowConnection(): boolean {
-  const c = navigator.connection as
-    | { saveData?: boolean; effectiveType?: string }
-    | undefined;
+  const nav = navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string };
+  };
+  const c = nav.connection;
   if (!c) return false;
   if (c.saveData) return true;
   return c.effectiveType === "slow-2g" || c.effectiveType === "2g";

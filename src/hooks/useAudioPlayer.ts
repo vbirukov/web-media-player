@@ -89,9 +89,9 @@ export function useAudioPlayer({
   const lastPlaybackUrlRef = useRef("");
   const lastSavedSecond = useRef(-1);
   const lastLiveSecond = useRef(-1);
-  const prefetchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
+  const prefetchTimerRef = useRef<
+    ReturnType<typeof window.setTimeout> | undefined
+  >(undefined);
   const prefetchGateCleanupRef = useRef<(() => void) | null>(null);
   const bufferWaitAbortRef = useRef<AbortController | null>(null);
   const playGenerationRef = useRef(0);

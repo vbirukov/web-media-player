@@ -81,11 +81,11 @@ export function getOfflineTrackIdsInFolder(folder: string): string[] {
 export function getOfflineFolderEntry(folder: string) {
   const ids = getOfflineTrackIdsInFolder(folder);
   if (!ids.length) return null;
-  const updatedAt = ids
+  const dates = ids
     .map((id) => read().tracks[id]?.updatedAt)
     .filter(Boolean)
-    .sort()
-    .at(-1);
+    .sort();
+  const updatedAt = dates[dates.length - 1];
   return { trackIds: ids, updatedAt: updatedAt ?? new Date().toISOString() };
 }
 

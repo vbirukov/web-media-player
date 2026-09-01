@@ -210,7 +210,6 @@ export const mockCatalog: Catalog = {
 
 export const mockUserState: UserState = {
   lastTrackId: null,
-  lastPosition: 0,
   likes: {},
   playlists: [
     {
@@ -220,8 +219,9 @@ export const mockUserState: UserState = {
       system: false,
     },
   ],
+  progress: {},
   shuffle: false,
-  repeat: 'off',
+  repeatMode: 'off',
   volume: 0.7,
   playbackRate: 1,
   wakeLock: false,

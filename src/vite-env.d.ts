@@ -1,5 +1,9 @@
 /// <reference types="vite/client" />
 
+interface Window {
+  __REACT_ROOT__?: import("react-dom/client").Root;
+}
+
 interface ImportMetaEnv {
   readonly VITE_MEDIA_BASE?: string;
   readonly VITE_AUDIO_PROXY_BASE?: string;

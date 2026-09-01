@@ -348,13 +348,8 @@ export function useCatalog(user: UserState, filters: Filters) {
     if (filters.view === "playlist") {
       return `Плейлист: ${user.playlists.find((p) => p.id === filters.selectedPlaylist)?.name ?? ""}`;
     }
-    if (feedMode === "sections") return "Каталог";
-    if (feedMode === "folders") {
-      return scope.level === "section" ? scope.sectionId : "Каталог";
-    }
     return "Каталог";
   }, [
-    feedMode,
     folderFilter,
     filters.feedScope,
     filters.selectedPlaylist,

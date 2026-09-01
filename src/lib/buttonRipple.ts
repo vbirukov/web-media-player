@@ -6,7 +6,7 @@ export function initButtonRipple() {
     "pointerdown",
     (e) => {
       const el = (e.target as HTMLElement).closest(RIPPLE_SELECTOR);
-      if (!el || !(el instanceof HTMLElement) || el.disabled) return;
+      if (!el || !(el instanceof HTMLButtonElement) || el.disabled) return;
       const rect = el.getBoundingClientRect();
       el.style.setProperty("--ripple-x", `${e.clientX - rect.left}px`);
       el.style.setProperty("--ripple-y", `${e.clientY - rect.top}px`);
