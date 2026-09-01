@@ -31,7 +31,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --import tsx --test src/lib/feedNavigation.test.ts"
+    "test": "node --import tsx --test src/lib/feedNavigation.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",

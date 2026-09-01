@@ -1,4 +1,3 @@
-import CatalogWorkerCtor from "../workers/catalog.worker?worker";
 import type { Catalog } from "../types/catalog";
 
 type CatalogWorkerOut =
@@ -7,7 +6,10 @@ type CatalogWorkerOut =
 
 export function runCatalogWorker(): Promise<Catalog | null> {
   return new Promise((resolve) => {
-    const w = new CatalogWorkerCtor();
+    const w = new Worker(
+      new URL("../workers/catalog.worker.ts", import.meta.url),
+      { type: "module" },
+    );
     const finish = (cat: Catalog | null) => {
       w.terminate();
       resolve(cat);
