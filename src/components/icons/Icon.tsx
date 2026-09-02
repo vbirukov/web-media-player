@@ -20,6 +20,7 @@ import {
   Download,
   Code2,
   Music,
+  Folder,
   Check,
   ChevronUp,
   ChevronDown,
@@ -58,6 +59,7 @@ export type IconName =
   | "download"
   | "code"
   | "music"
+  | "folder"
   | "check"
   | "chevron-up"
   | "chevron-down"
@@ -103,6 +105,7 @@ const icons: Record<IconName, { Icon: LucideIcon; filled?: boolean }> = {
   download: { Icon: Download },
   code: { Icon: Code2 },
   music: { Icon: Music },
+  folder: { Icon: Folder },
   check: { Icon: Check },
   "chevron-up": { Icon: ChevronUp },
   "chevron-down": { Icon: ChevronDown },

@@ -817,14 +817,13 @@ export function PlayerApp({
             onPlayTrack={handleOpenMedia}
             onToggleLike={handleToggleLike}
             onAddToPlaylist={addTrackToPlaylist}
-            onOpenNav={() => setNavOpen(true)}
+            onSelectFolder={handleScrollToFolder}
             onFeedLayoutChange={(feedLayout) =>
               setUser((prev) => ({ ...prev, feedLayout }))
             }
             onFeedListenFilterChange={(feedListenFilter) =>
               setUser((prev) => ({ ...prev, feedListenFilter }))
             }
-            onSelectFolder={handleScrollToFolder}
             onShareFolder={handleShareFolder}
             renderFolderOffline={renderFolderOffline}
             renderSelectionOffline={renderSelectionOffline}

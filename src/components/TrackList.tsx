@@ -73,7 +73,6 @@ type Props = {
   onToggleLike: TrackCardProps["onToggleLike"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onSelectFolder: TrackCardProps["onSelectFolder"];
-  onOpenNav: () => void;
   onFeedLayoutChange: (layout: FeedLayout) => void;
   onFeedListenFilterChange: (filter: FeedListenFilter) => void;
   onShareFolder?: (folder: string) => void;
@@ -121,7 +120,6 @@ export function TrackList({
   onToggleLike,
   onAddToPlaylist,
   onSelectFolder,
-  onOpenNav,
   onFeedLayoutChange,
   onFeedListenFilterChange,
   onShareFolder,
@@ -280,18 +278,6 @@ export function TrackList({
           onContinue={handleContinue}
         />
       ) : null}
-      <section className="section-head section-head--catalog">
-        <div className="section-head-catalog-row">
-          <button
-            type="button"
-            className="ghost section-head-catalog-btn menu-toggle"
-            onClick={onOpenNav}
-            aria-label={`Каталог: ${sectionTitle}`}
-          >
-            Каталог
-          </button>
-        </div>
-      </section>
       {showListenFilter ? (
         <FeedListenFilterBar
           value={user.feedListenFilter}

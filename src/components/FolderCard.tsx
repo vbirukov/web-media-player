@@ -34,6 +34,9 @@ export function FolderCard({
         onClick={onOpen}
         aria-label={`${folder.name}, ${countLabel}${badges ? `, ${badges}` : ""}`}
       >
+        <span className="folder-card__glyph" aria-hidden>
+          <Icon name="folder" size={22} />
+        </span>
         <h3 className="folder-card__title">{folder.name}</h3>
         <p className="folder-card__meta mini-text">
           {countLabel}
@@ -41,17 +44,17 @@ export function FolderCard({
         </p>
       </button>
       {(onShare || offlineActions) && (
-        <div className="folder-card__actions">
+        <div className="folder-card__actions card-social">
           {offlineActions}
           {onShare ? (
             <button
               type="button"
-              className="ghost folder-card__share"
+              className="ghost round folder-card__share"
               onClick={onShare}
               aria-label={`Поделиться «${folder.name}»`}
+              title={`Поделиться «${folder.name}»`}
             >
-              <Icon name="share" size={16} aria-hidden />
-              <span>Поделиться</span>
+              <Icon name="share" size={20} aria-hidden />
             </button>
           ) : null}
         </div>
