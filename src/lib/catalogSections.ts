@@ -19,7 +19,7 @@ export function resolveTrackSection(track: Track): string {
   // Убираем годовые диапазоны ("1995 - 1997") из имени папки
   const cleaned = track.folder.replace(/\s*\d{4}\s*[-–—]\s*\d{4}\s*$/, "").trim();
   const parts = cleaned.split(/[/\\|—–-]+/).map((p) => p.trim()).filter(Boolean);
-  return parts.length > 1 ? parts[0]! : "Каталог";
+  return parts.length >= 1 ? parts[0]! : "Каталог";
 }
 
 export function buildCatalogSections(
