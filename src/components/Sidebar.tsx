@@ -172,7 +172,7 @@ function SectionBlock({
         aria-expanded={expanded}
       >
         <Icon
-          name={expanded ? "chevron-down" : "chevron-up"}
+          name={expanded ? "chevron-down" : "chevron-right"}
           size={14}
           aria-hidden
         />

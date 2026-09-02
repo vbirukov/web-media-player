@@ -24,6 +24,7 @@ import {
   Check,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
   ListPlus,
   LayoutGrid,
   Rows3,
@@ -63,6 +64,7 @@ export type IconName =
   | "check"
   | "chevron-up"
   | "chevron-down"
+  | "chevron-right"
   | "list-plus"
   | "layout-grid"
   | "layout-rows"
@@ -109,6 +111,7 @@ const icons: Record<IconName, { Icon: LucideIcon; filled?: boolean }> = {
   check: { Icon: Check },
   "chevron-up": { Icon: ChevronUp },
   "chevron-down": { Icon: ChevronDown },
+  "chevron-right": { Icon: ChevronRight },
   "list-plus": { Icon: ListPlus },
   "layout-grid": { Icon: LayoutGrid },
   "layout-rows": { Icon: Rows3 },

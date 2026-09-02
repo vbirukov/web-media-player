@@ -327,9 +327,10 @@ export function TrackList({
               type="button"
               className="ghost feed-toolbar__share"
               onClick={() => onShareFolder(feedFolderFilter[0]!)}
+              aria-label="Поделиться альбомом"
+              title="Поделиться альбомом"
             >
               <Icon name="share" size={18} aria-hidden />
-              <span>Поделиться альбомом</span>
             </button>
           ) : null}
           {feedMode === "tracks" ? (

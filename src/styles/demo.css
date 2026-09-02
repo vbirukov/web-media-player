@@ -135,10 +135,12 @@ a { color: inherit; }
   padding: 6px 10px;
   font-weight: 700; font-size: 15px; opacity: 1;
   cursor: pointer; border: none; background: transparent; color: inherit;
-  text-align: left; display: flex; justify-content: space-between; align-items: center; gap: 6px;
+  text-align: left; display: flex; align-items: center; gap: 6px;
 }
+.nav-section-block__head .icon { flex-shrink: 0; }
+.nav-section-block__head .nav-item__label { font-size: 15px; font-weight: 700; flex: 1; min-width: 0; }
+.nav-section-block__head .nav-sublabel { flex-shrink: 0; }
 .nav-section-block__head:hover { background: rgba(255,255,255,0.05); border-radius: 8px; }
-.nav-section-block__head .nav-item__label { font-size: 15px; font-weight: 700; }
 .nav-section-block.is-section-active > .nav-section-block__head { color: var(--accent); }
 
 /* Потомки (папки раздела) — заметно меньше и легче корня */

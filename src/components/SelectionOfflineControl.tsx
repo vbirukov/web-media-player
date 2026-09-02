@@ -24,11 +24,10 @@ export function SelectionOfflineControl({
         type="button"
         className="folder-offline folder-offline--inline ghost"
         onClick={onCancel}
+        aria-label={`Скачивание… ${job.done}/${job.total}. Отменить`}
+        title={`Скачивание… ${job.done}/${job.total}`}
       >
         <Icon name="loader" size={18} className="icon-spin" aria-hidden />
-        <span>
-          Скачивание… {job.done}/{job.total}
-        </span>
       </button>
     );
   }
@@ -38,9 +37,10 @@ export function SelectionOfflineControl({
       type="button"
       className="folder-offline folder-offline--inline ghost"
       onClick={onDownload}
+      aria-label={`Скачать выборку (${trackCount})`}
+      title={`Скачать выборку (${trackCount})`}
     >
       <Icon name="download" size={18} aria-hidden />
-      <span>Скачать выборку ({trackCount})</span>
     </button>
   );
 }

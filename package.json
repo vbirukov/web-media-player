@@ -1,6 +1,6 @@
 {
   "name": "@vbirukov/player",
-  "version": "0.4.9",
+  "version": "0.4.10",
   "description": "React audio library player engine (catalog, playback, offline, themes)",
   "type": "module",
   "license": "UNLICENSED",
