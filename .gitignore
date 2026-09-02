@@ -35,3 +35,6 @@ Thumbs.db
 
 # test / coverage
 coverage/
+
+# browser automation debug profile
+.chrome-debug/
