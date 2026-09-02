@@ -2,7 +2,7 @@ import { memo, useEffect, useState } from "react";
 import { fmtTime } from "../lib/format";
 import { isStubTrack } from "../lib/diskDownload";
 import { listenStatus, listenStatusLabel } from "../lib/listenStatus";
-import { mediaActionLabel, trackKind } from "../lib/mediaKind";
+import { mediaActionLabel, mediaKindIcon, mediaKindLabel, trackKind } from "../lib/mediaKind";
 import { Icon } from "./icons/Icon";
 import { CardPlaylistMenu } from "./CardPlaylistMenu";
 import { IconButton, PlayPauseIcon } from "./IconButton";
@@ -269,8 +269,12 @@ function TrackCardInner({
       ) : (
         <>
           <div className="card-pills">
-            <span className={`pill pill--kind pill--kind-${kind}`}>
-              {kind === "audio" ? "Аудио" : kind === "video" ? "Видео" : "Текст"}
+            <span
+              className={`pill pill--kind pill--kind-${kind}`}
+              title={mediaKindLabel[kind]}
+              aria-label={mediaKindLabel[kind]}
+            >
+              <Icon name={mediaKindIcon[kind]} size={14} aria-hidden />
             </span>
             {showFolderName ? (
               <CardFolderLink

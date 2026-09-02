@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { trackKind } from "../lib/mediaKind";
+import { mediaKindIcon, mediaKindLabel, trackKind } from "../lib/mediaKind";
 import type { Track } from "../types/catalog";
 import { Icon } from "./icons/Icon";
 
@@ -41,7 +41,13 @@ export function TextViewer({
     <div className="text-viewer" role="dialog" aria-modal="true" aria-label={track.title}>
       <header className="text-viewer__header">
         <div>
-          <span className="pill pill--kind">Текст</span>
+          <span
+            className="pill pill--kind pill--kind-text"
+            title={mediaKindLabel.text}
+            aria-label={mediaKindLabel.text}
+          >
+            <Icon name={mediaKindIcon.text} size={14} aria-hidden />
+          </span>
           <h2 className="text-viewer__title">{track.title}</h2>
           <p className="text-viewer__folder">{track.folder}</p>
         </div>

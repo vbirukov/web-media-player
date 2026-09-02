@@ -8,7 +8,6 @@ type Props = {
   mode: "sections" | "folders";
   sectionEntries?: CatalogSectionNav[];
   folderEntries?: FolderFeedEntry[];
-  onOpenSection: (sectionId: string) => void;
   onOpenFolder: (scope: Extract<FeedScope, { level: "folder" }>) => void;
   onShareFolder?: (sectionId: string, folder: string) => void;
   renderFolderOffline?: (folder: string) => ReactNode;
@@ -18,7 +17,6 @@ export function CatalogHierarchyFeed({
   mode,
   sectionEntries = [],
   folderEntries = [],
-  onOpenSection,
   onOpenFolder,
   onShareFolder,
   renderFolderOffline,
@@ -65,13 +63,6 @@ export function CatalogHierarchyFeed({
             <span className="catalog-section-block__count mini-text">
               {section.trackCount} материалов · {section.folders.length} папок
             </span>
-            <button
-              type="button"
-              className="ghost catalog-section-block__open"
-              onClick={() => onOpenSection(section.id)}
-            >
-              Открыть
-            </button>
           </header>
           <div className="cards cards--folders cards--nested" role="list">
             {section.folders.map((folder) => (

@@ -385,9 +385,6 @@ export function TrackList({
             mode={feedMode === "sections" ? "sections" : "folders"}
             sectionEntries={sectionEntries}
             folderEntries={folderEntries}
-            onOpenSection={(sectionId) =>
-              onNavigate({ level: "section", sectionId })
-            }
             onOpenFolder={(scope) => onNavigate(scope)}
             onShareFolder={onShareFolderScoped}
             renderFolderOffline={renderFolderOffline}

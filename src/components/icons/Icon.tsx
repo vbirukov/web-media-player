@@ -21,6 +21,8 @@ import {
   Code2,
   Music,
   Folder,
+  Video,
+  FileText,
   Check,
   ChevronUp,
   ChevronDown,
@@ -60,6 +62,8 @@ export type IconName =
   | "download"
   | "code"
   | "music"
+  | "video"
+  | "file-text"
   | "folder"
   | "check"
   | "chevron-up"
@@ -107,6 +111,8 @@ const icons: Record<IconName, { Icon: LucideIcon; filled?: boolean }> = {
   download: { Icon: Download },
   code: { Icon: Code2 },
   music: { Icon: Music },
+  video: { Icon: Video },
+  "file-text": { Icon: FileText },
   folder: { Icon: Folder },
   check: { Icon: Check },
   "chevron-up": { Icon: ChevronUp },

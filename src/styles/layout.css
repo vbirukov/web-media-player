@@ -616,7 +616,7 @@ html.video-player-mode-center.has-video-player .app-shell {
   background: color-mix(in srgb, var(--aol-gray, #7a8794) 12%, transparent);
 }
 
-.folder-card__actions span,
+.folder-card__actions .folder-offline > span,
 .folder-card__actions .folder-offline-badge {
   display: none;
 }
@@ -647,10 +647,6 @@ html.video-player-mode-center.has-video-player .app-shell {
 .catalog-section-block__count {
   flex: 1;
   min-width: 0;
-}
-
-.catalog-section-block__open {
-  font-weight: 600;
 }
 
 .cards--nested {

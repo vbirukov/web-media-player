@@ -65,7 +65,9 @@ export function FolderOfflineControl({
           className={cls}
           onClick={onRemove}
           aria-label={`Удалить офлайн-копию «${folder}»`}
+          title="Удалить с устройства"
         >
+          <Icon name="check" size={15} aria-hidden />
           <span>Удалить с устройства</span>
         </button>
       </div>

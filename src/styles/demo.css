@@ -262,7 +262,16 @@ a { color: inherit; }
 .folder-card__meta {
   margin: 0; flex: 0 0 auto; font-size: 12px; line-height: 22px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: inline-flex; align-items: center;
 }
+.folder-card__kinds { display: inline-flex; align-items: center; gap: 8px; }
+.folder-card__kind {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.folder-card__kind--audio { color: var(--accent-2, #1fa39b); }
+.folder-card__kind--video { color: #e57a68; }
+.folder-card__kind--text { color: #d79bf7; }
 .folder-card__actions {
   display: flex; flex-direction: row; flex-wrap: nowrap;
   flex: 0 0 auto; align-items: center; justify-content: flex-end;
@@ -279,7 +288,7 @@ a { color: inherit; }
 }
 .folder-card__actions .folder-offline:hover,
 .folder-card__actions .ghost:hover { border-color: var(--border); background: rgba(255,255,255,.06); }
-.folder-card__actions span,
+.folder-card__actions .folder-offline > span,
 .folder-card__actions .folder-offline-badge { display: none; }
 .folder-card__actions .folder-offline-pair { display: contents; }
 
@@ -287,7 +296,6 @@ a { color: inherit; }
 .catalog-section-block__head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .catalog-section-block__title { margin: 0; font-size: 19px; }
 .catalog-section-block__count { opacity: .55; font-size: 13px; }
-.catalog-section-block__open { font-weight: 600; }
 
 .catalog-folder-heading { display: flex; align-items: center; gap: 10px; }
 .catalog-folder-heading__label { font-weight: 700; }
@@ -354,6 +362,7 @@ a { color: inherit; }
 .pill--kind-audio { background: color-mix(in srgb, var(--accent-2, #1fa39b) 22%, transparent); color: var(--accent-2, #1fa39b); border-color: transparent; }
 .pill--kind-video { background: color-mix(in srgb, #d54e3a 22%, transparent); color: #e57a68; border-color: transparent; }
 .pill--kind-text { background: color-mix(in srgb, #c868f5 22%, transparent); color: #d79bf7; border-color: transparent; }
+.pill--kind:has(.icon) { padding: 4px 7px; }
 .pill--offline { background: color-mix(in srgb, var(--good, #3c7a4e) 22%, transparent); color: var(--good, #3c7a4e); border-color: transparent; }
 
 /* badges */

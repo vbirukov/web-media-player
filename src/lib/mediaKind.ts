@@ -77,6 +77,14 @@ export const mediaKindLabel: Record<MediaKind, string> = {
   text: "Текст",
 };
 
+export type MediaKindIcon = "music" | "video" | "file-text";
+
+export const mediaKindIcon: Record<MediaKind, MediaKindIcon> = {
+  audio: "music",
+  video: "video",
+  text: "file-text",
+};
+
 export function mediaActionLabel(kind: MediaKind, playing: boolean): string {
   if (kind === "video") return playing ? "Пауза" : "Смотреть";
   if (kind === "text") return "Читать";
