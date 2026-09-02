@@ -238,3 +238,37 @@ for (const node of [feed, main, anchor].filter((n): n is HTMLElement => n != nul
 Рекомендация вдолгую: добавить в пакет собственный `tsc --noEmit` в CI
 (сейчас в package.json только `node --import tsx --test`, тестов, но не typecheck),
 чтобы ловить эти регрессии до публикации.
+
+---
+
+## ⚠️ Дополнение: dev-сервер Vite падает (ОТДЕЛЬНЫЙ баг, не типизация)
+
+**Симптом:** `vite dev` (Vite 4.5) крашится с:
+```
+X [ERROR] No matching export in "node_modules/@vbirukov/player/src/workers/catalog.worker.ts?worker" for import "default"
+  node_modules/@vbirukov/player/src/lib/catalogWorker.ts:1:7:
+    1 │ import CatalogWorkerCtor from "../workers/catalog.worker?worker";
+```
+Процесс Node завершается с `Error: Build failed` (краш, не предупреждение).
+
+**Причина:** `src/lib/catalogWorker.ts` (строка 1) делает
+`import CatalogWorkerCtor from "../workers/catalog.worker?worker"` — это
+Vite-специфичный `?worker`-импорт. Пакет публикует исходники `.ts`, и когда
+Vite на dev-сервере встречает этот импорт ВНУТРИ node_modules-пакета,
+он не резолвит его корректно (esbuild-препроцесс оптимизированных зависимостей
+не понимает `?worker`).
+
+**Важные детали:**
+- `vite build` (production) при этом **проходит** — worker обрабатывается иначе.
+- Убирание `@vbirukov/player` из `optimizeDeps.include` **не** помогло — ошибка остаётся.
+- `%VITE_YM_COUNTER_ID%` в index.html также предупреждается (не критично).
+
+**Что блокирует:** хост не может развивать `vite dev` (HMR, тепло: проверка
+UI в браузере). Production-сборка и деплой работают.
+
+**Рекомендация ответственному:** не публиковать raw `.ts` через
+`files: ["src"]` без пре-сборки, ЛИБО импортировать worker иначе (например,
+через новый URL `new Worker(new URL("./x", import.meta.url))`), либо добавить
+`.d.ts`/дистрибутив вместо исходников. Минимальный хак (на стороне хоста):
+`.env`/алиас для подмены `catalogWorker.ts`.
+
