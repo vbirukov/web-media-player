@@ -12,11 +12,38 @@ permissions:
   packages: write
 
 jobs:
-  publish:
+  # ── Job 1: push → main → only auto-tag ──────────────────────
+  tag:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Auto-tag from package.json
+        shell: bash
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")"
+          if ! git tag -l "$VERSION" | grep -q .; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git tag "$VERSION"
+            git push origin "$VERSION"
+            echo "✅ Created and pushed tag $VERSION"
+          else
+            echo "⏭️  Tag $VERSION already exists — version not bumped"
+          fi
+
+  # ── Job 2: push → tag v* → only publish ─────────────────────
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -28,35 +55,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # ── Auto-tag on push to main ──────────────────────────────
-      # Read version from package.json, create & push tag v{version}
-      # if it doesn't exist yet. GITHUB_TOKEN prevents recursive runs.
-      - name: Auto-tag on main push
-        if: github.ref_name == 'main'
-        shell: bash
-        run: |
-          VERSION="v$(node -p "require('./package.json').version")"
-          if ! git tag -l "$VERSION" | grep -q .; then
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
-            git tag "$VERSION"
-            git push origin "$VERSION"
-            echo "✅ Created and pushed tag $VERSION"
-          else
-            echo "⏭️  Tag $VERSION already exists"
-          fi
-
-      # ── Verify tag version matches package.json ────────────────
-      # Only for tag-triggered runs (main push already consumed above)
       - name: Verify package version matches tag
-        if: startsWith(github.ref, 'refs/tags/')
         shell: bash
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
           PKG_VERSION="$(node -p "require('./package.json').version")"
           echo "tag=$TAG_VERSION package=$PKG_VERSION"
           if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            npm version "$TAG_VERSION" --no-git-tag-version
+            echo "❌ Tag $GITHUB_REF_NAME does not match package.json $PKG_VERSION"
+            exit 1
           fi
 
       - name: Publish

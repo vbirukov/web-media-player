@@ -1,6 +1,6 @@
 {
   "name": "@vbirukov/player",
-  "version": "0.4.8",
+  "version": "0.4.9",
   "description": "React audio library player engine (catalog, playback, offline, themes)",
   "type": "module",
   "license": "UNLICENSED",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/vbirukov/web-media-player.git"
+    "url": "git+https://github.com/vbirukov/web-media-player.git"
   },
   "files": [
     "src",
