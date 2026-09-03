@@ -4,17 +4,34 @@ import { resolveBranding } from "../lib/branding";
 import { getPlayerConfig } from "../playerConfig";
 import { Icon } from "./icons/Icon";
 import { IconButtonIcon } from "./IconButton";
-import { MediaKindFilter as MediaKindFilterBar } from "./MediaKindFilter";
+import { MediaKindFilter as MediaKindFilterBar, mediaKindVariety } from "./MediaKindFilter";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import {
   buildCatalogSections,
   type CatalogSectionNav,
 } from "../lib/catalogSections";
 import { isHierarchicalNavigation } from "../lib/feedNavigation";
-import type { MediaKindFilter as MediaKindFilterValue } from "../lib/mediaKind";
-import type { Catalog } from "../types/catalog";
+import {
+  mediaKindIcon,
+  mediaKindLabel,
+  type MediaKindFilter as MediaKindFilterValue,
+} from "../lib/mediaKind";
+import type { Catalog, MediaKind } from "../types/catalog";
 import type { FeedScope } from "../types/navigation";
 import type { LibraryView, UserState } from "../types/user";
+
+const KIND_ORDER: MediaKind[] = ["audio", "video", "text"];
+
+function sectionKinds(section: CatalogSectionNav) {
+  return section.folders.reduce(
+    (acc, folder) => ({
+      audio: acc.audio + folder.kinds.audio,
+      video: acc.video + folder.kinds.video,
+      text: acc.text + folder.kinds.text,
+    }),
+    { audio: 0, video: 0, text: 0 },
+  );
+}
 
 function SidebarBrandBlock({
   onClose,
@@ -151,6 +168,8 @@ function SectionBlock({
   renderFolderOffline?: (folder: string) => ReactNode;
 }) {
   const isSectionFocused = focusedSection === section.id;
+  const kinds = sectionKinds(section);
+  const presentKinds = KIND_ORDER.filter((kind) => kinds[kind] > 0);
 
   return (
     <div
@@ -171,13 +190,26 @@ function SectionBlock({
         }}
         aria-expanded={expanded}
       >
-        <Icon
-          name={expanded ? "chevron-down" : "chevron-right"}
-          size={14}
-          aria-hidden
-        />
-        <span className="nav-item__label">{section.title}</span>
-        <span className="nav-sublabel">{section.trackCount}</span>
+        <span className="nav-section-block__title">
+          <Icon
+            name={expanded ? "chevron-down" : "chevron-right"}
+            size={14}
+            aria-hidden
+          />
+          <span className="nav-item__label">{section.title}</span>
+        </span>
+        <span className="nav-sublabel nav-section-block__meta">
+          <span>{section.trackCount}</span>
+          {presentKinds.map((kind) => (
+            <Icon
+              key={kind}
+              name={mediaKindIcon[kind]}
+              size={12}
+              aria-hidden
+              title={`${kinds[kind]} ${mediaKindLabel[kind]}`}
+            />
+          ))}
+        </span>
       </button>
       {expanded ? (
         <div className="nav-section-block__folders">
@@ -355,14 +387,16 @@ export function Sidebar({
             </button>
           ))}
         </section>
-        <section className="side-section">
-          <h2>Тип контента</h2>
-          <MediaKindFilterBar
-            catalog={catalog}
-            value={mediaKindFilter}
-            onChange={onMediaKindFilterChange}
-          />
-        </section>
+        {mediaKindVariety(catalog) > 1 ? (
+          <section className="side-section">
+            <h2>Тип контента</h2>
+            <MediaKindFilterBar
+              catalog={catalog}
+              value={mediaKindFilter}
+              onChange={onMediaKindFilterChange}
+            />
+          </section>
+        ) : null}
         {offlineSummary ? (
           <section className="side-section">
             <h2>Офлайн</h2>

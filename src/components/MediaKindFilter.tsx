@@ -13,9 +13,20 @@ type Props = {
   onChange: (value: MediaKindFilter) => void;
 };
 
+/** Сколько разных типов контента есть в каталоге (audio/video/text). */
+export function mediaKindVariety(catalog: Catalog): number {
+  const counts = catalogKindCounts(catalog);
+  return (["audio", "video", "text"] as const).filter((k) => counts[k] > 0).length;
+}
+
 export function MediaKindFilter({ catalog, value, onChange }: Props) {
   const counts = catalogKindCounts(catalog);
   const total = catalog.tracks.length;
+  const variety = (["audio", "video", "text"] as const).filter(
+    (k) => counts[k] > 0,
+  ).length;
+
+  if (variety < 2) return null;
 
   const items: { id: MediaKindFilter; label: string; count: number }[] = [
     { id: "all", label: "Все", count: total },
@@ -38,8 +49,8 @@ export function MediaKindFilter({ catalog, value, onChange }: Props) {
             }
             onClick={() => onChange(item.id)}
           >
-            {item.label}
-            <span className="nav-sublabel">{item.count}</span>
+            <span className="media-kind-filter__label">{item.label}</span>
+            <span className="media-kind-filter__count nav-sublabel">{item.count}</span>
           </button>
         ),
       )}

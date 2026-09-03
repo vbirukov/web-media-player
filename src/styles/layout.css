@@ -579,6 +579,42 @@ html.video-player-mode-center.has-video-player .app-shell {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.folder-card__kinds {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.folder-card__kind {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.folder-card__kind .icon {
+  flex-shrink: 0;
+  display: block;
+}
+
+.folder-card__kind--audio {
+  color: var(--accent-2, #1fa39b);
+}
+
+.folder-card__kind--video {
+  color: #e57a68;
+}
+
+.folder-card__kind--text {
+  color: #d79bf7;
 }
 
 .folder-card__actions {
