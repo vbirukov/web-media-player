@@ -2,17 +2,32 @@ import { trackKind, type MediaKindFilter } from "./mediaKind";
 import type { Catalog, Track } from "../types/catalog";
 
 export type SectionFolder = {
+  /** Физическое имя папки (ключ для путей/оффлайн/шеринга) */
   name: string;
+  /** Отображаемое имя папки (без номеров-префиксов); нет → name */
+  label: string;
   trackCount: number;
   kinds: { audio: number; video: number; text: number };
 };
 
 export type CatalogSectionNav = {
+  /** Физический id раздела (ключ навигации/ссылок) */
   id: string;
+  /** Отображаемое название раздела; нет → id */
   title: string;
   folders: SectionFolder[];
   trackCount: number;
 };
+
+/** Отображаемое имя папки по каталогу (folderLabels), фолбэк — физическое имя. */
+export function folderDisplayName(catalog: Catalog, folder: string): string {
+  return catalog.folderLabels?.[folder]?.trim() || folder;
+}
+
+/** Отображаемое название раздела по каталогу (sectionLabels), фолбэк — id. */
+export function sectionDisplayTitle(catalog: Catalog, sectionId: string): string {
+  return catalog.sectionLabels?.[sectionId]?.trim() || sectionId;
+}
 
 export function resolveTrackSection(track: Track): string {
   if (track.section?.trim()) return track.section.trim();
@@ -40,6 +55,7 @@ export function buildCatalogSections(
     if (!folder) {
       folder = {
         name: track.folder,
+        label: folderDisplayName(catalog, track.folder),
         trackCount: 0,
         kinds: { audio: 0, video: 0, text: 0 },
       };
@@ -63,7 +79,7 @@ export function buildCatalogSections(
     );
     return {
       id,
-      title: id,
+      title: sectionDisplayTitle(catalog, id),
       folders,
       trackCount: folders.reduce((n, f) => n + f.trackCount, 0),
     };

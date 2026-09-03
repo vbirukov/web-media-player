@@ -30,6 +30,7 @@ import {
   sortTracksForCatalog,
   trackMatchesFeedScope,
 } from "../lib/feedNavigation";
+import { folderDisplayName, sectionDisplayTitle } from "../lib/catalogSections";
 import type { Catalog, Track } from "../types/catalog";
 import type { FeedScope } from "../types/navigation";
 import type { FeedListenFilter, LibraryView, UserState } from "../types/user";
@@ -334,14 +335,16 @@ export function useCatalog(user: UserState, filters: Filters) {
 
   const sectionTitle = useMemo(() => {
     const scope = filters.feedScope;
-    if (scope.level === "folder") return scope.folder;
-    if (scope.level === "section") return scope.sectionId;
+    if (scope.level === "folder")
+      return folderDisplayName(catalog, scope.folder);
+    if (scope.level === "section")
+      return sectionDisplayTitle(catalog, scope.sectionId);
     if (scope.level === "selection") {
       return scope.folders.length === 1
-        ? scope.folders[0]!.folder
+        ? folderDisplayName(catalog, scope.folders[0]!.folder)
         : `Выборка · ${scope.folders.length} серий`;
     }
-    if (folderFilter.length === 1) return folderFilter[0]!;
+    if (folderFilter.length === 1) return folderDisplayName(catalog, folderFilter[0]!);
     if (folderFilter.length > 1) return `Выборка · ${folderFilter.length} серий`;
     if (filters.view === "resume") return "Продолжить прослушивание";
     if (filters.view === "liked") return "Лайки";
@@ -350,6 +353,7 @@ export function useCatalog(user: UserState, filters: Filters) {
     }
     return "Каталог";
   }, [
+    catalog,
     folderFilter,
     filters.feedScope,
     filters.selectedPlaylist,

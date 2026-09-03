@@ -1,6 +1,8 @@
 import {
   buildCatalogSections,
+  folderDisplayName,
   resolveTrackSection,
+  sectionDisplayTitle,
   type CatalogSectionNav,
   type SectionFolder,
 } from "./catalogSections";
@@ -158,7 +160,10 @@ export function buildBreadcrumbs(
   if (scope.level === "section") {
     return [
       root,
-      { label: scope.sectionId, scope: { level: "section", sectionId: scope.sectionId } },
+      {
+        label: sectionDisplayTitle(catalog, scope.sectionId),
+        scope: { level: "section", sectionId: scope.sectionId },
+      },
     ];
   }
 
@@ -166,11 +171,11 @@ export function buildBreadcrumbs(
     return [
       root,
       {
-        label: scope.sectionId,
+        label: sectionDisplayTitle(catalog, scope.sectionId),
         scope: { level: "section", sectionId: scope.sectionId },
       },
       {
-        label: scope.folder,
+        label: folderDisplayName(catalog, scope.folder),
         scope: {
           level: "folder",
           sectionId: scope.sectionId,
@@ -183,7 +188,7 @@ export function buildBreadcrumbs(
 
   const label =
     scope.folders.length === 1
-      ? scope.folders[0]!.folder
+      ? folderDisplayName(catalog, scope.folders[0]!.folder)
       : `Выборка · ${scope.folders.length}`;
   return [root, { label, scope }];
 }

@@ -45,6 +45,7 @@ export function FolderCard({
   onShare,
   offlineActions,
 }: Props) {
+  const displayName = folder.label || folder.name;
   const summary = kindSummary(folder.kinds);
 
   return (
@@ -53,12 +54,12 @@ export function FolderCard({
         type="button"
         className="folder-card__open"
         onClick={onOpen}
-        aria-label={`${folder.name}${summary ? `, ${summary}` : ""}`}
+        aria-label={`${displayName}${summary ? `, ${summary}` : ""}`}
       >
         <span className="folder-card__glyph" aria-hidden>
           <Icon name="folder" size={22} />
         </span>
-        <h3 className="folder-card__title">{folder.name}</h3>
+        <h3 className="folder-card__title">{displayName}</h3>
         <p className="folder-card__meta mini-text">
           <KindCounts kinds={folder.kinds} />
         </p>
@@ -71,8 +72,8 @@ export function FolderCard({
               type="button"
               className="ghost round folder-card__share"
               onClick={onShare}
-              aria-label={`Поделиться «${folder.name}»`}
-              title={`Поделиться «${folder.name}»`}
+              aria-label={`Поделиться «${displayName}»`}
+              title={`Поделиться «${displayName}»`}
             >
               <Icon name="share" size={20} aria-hidden />
             </button>

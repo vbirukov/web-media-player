@@ -18,8 +18,22 @@ export type Track = {
 
 export type Catalog = {
   sourceTitle: string;
+  /** id разделов в порядке отображения (физические ключи, напр. «01 RASTAMANSKIE SKAZKI») */
   sections: string[];
+  /** Физические имена папок (пути/оффлайн/шеринг строятся по ним) */
   folders: string[];
   tracks: Track[];
   loaded: boolean;
+  /**
+   * id раздела → отображаемое название (без номеров-префиксов),
+   * напр. «01 RASTAMANSKIE SKAZKI» → «RASTAMANSKIE SKAZKI».
+   * Нет записи → показываем сам id.
+   */
+  sectionLabels?: Record<string, string>;
+  /**
+   * физическое имя папки → отображаемое название карточки,
+   * напр. «01 RASTAMANSKIE SKAZKI 1995 - 1997» → «1995 - 1997».
+   * Нет записи → показываем физическое имя.
+   */
+  folderLabels?: Record<string, string>;
 };

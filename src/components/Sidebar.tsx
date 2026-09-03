@@ -252,7 +252,7 @@ function SectionBlock({
                     onScrollToFolder(folder.name, section.id);
                   }}
                 >
-                  <span className="nav-item__label">{folder.name}</span>
+                  <span className="nav-item__label">{folder.label || folder.name}</span>
                   <span className="nav-sublabel">
                     {kindHint || `${folder.trackCount} материалов`}
                     {inSelection ? " · в выборке" : ""}
@@ -273,8 +273,8 @@ function SectionBlock({
                   type="button"
                   className="nav-item__share nav-item__share--stacked"
                   onClick={() => onShareFolder(folder.name)}
-                  aria-label={`Поделиться «${folder.name}»`}
-                  title={`Поделиться «${folder.name}»`}
+                  aria-label={`Поделиться «${folder.label || folder.name}»`}
+                  title={`Поделиться «${folder.label || folder.name}»`}
                 >
                   <Icon name="share" size={15} aria-hidden />
                 </button>

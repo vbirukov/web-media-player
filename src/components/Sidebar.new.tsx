@@ -244,7 +244,7 @@ function SectionBlock({
                       }}
                     >
                       <div className="flex flex-col items-start">
-                        <span className="font-medium">{folder.name}</span>
+                        <span className="font-medium">{folder.label || folder.name}</span>
                         <span className="text-xs text-muted-foreground">
                           {kindHint || `${folder.trackCount} материалов`}
                           {inSelection ? " · в выборке" : ""}
@@ -271,7 +271,7 @@ function SectionBlock({
                       size="sm"
                       className="w-full mt-1 text-xs gap-1.5"
                       onClick={() => onShareFolder(folder.name)}
-                      aria-label={`Поделиться «${folder.name}»`}
+                      aria-label={`Поделиться «${folder.label || folder.name}»`}
                     >
                       <Share2 className="h-3.5 w-3.5" />
                       <span>Поделиться</span>

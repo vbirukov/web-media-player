@@ -18,6 +18,8 @@ export async function loadLocalCatalog(): Promise<Catalog> {
       section: t.section,
       url: mediaUrlForPath(t.path),
     })),
+    sectionLabels: data.sectionLabels,
+    folderLabels: data.folderLabels,
     loaded: true,
   };
 }
